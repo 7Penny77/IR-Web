@@ -1,0 +1,1492 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>國立臺北大學 - 教師授課與課程開授資訊網</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        ntpuBlue: '#004B87',     /* 臺北大學主鳶藍 */
+                        ntpuGold: '#D4AF37',     /* 琥珀金強調色 */
+                        ntpuLightBg: '#F8F9FA',   /* 淺灰背景 */
+                        ntpuDark: '#1A2A3A'      /* 深色文字 */
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 下拉選單懸浮顯示效果 */
+        .dropdown:hover .dropdown-menu { display: block; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-ntpuLightBg text-ntpuDark font-sans antialiased flex flex-col min-h-screen">
+
+    <header class="bg-ntpuBlue text-white sticky top-0 z-50 shadow-md py-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center">
+            
+            <div class="flex items-center space-x-4 cursor-pointer mb-4" onclick="switchTab('page1')">
+                <div class="bg-white p-2 rounded-full text-ntpuBlue text-2xl font-black w-12 h-12 flex items-center justify-center shadow-inner">
+                    北
+                </div>
+                <div class="text-center md:text-left">
+                    <h1 class="text-2xl font-black tracking-wider">國立臺北大學</h1>
+                    <p class="text-xs text-gray-300 font-medium mt-0.5 tracking-wide">教師授課與課程開授資訊網</p>
+                </div>
+            </div>
+            
+            <div class="w-full flex justify-center md:justify-end border-t border-blue-800/50 pt-3">
+                <nav class="flex space-x-12 text-base font-semibold h-10 items-center md:mr-10">
+                    
+                    <div class="dropdown relative h-full flex items-center cursor-pointer">
+                        <span class="hover:text-ntpuGold transition-colors py-2 flex items-center tracking-wide">
+                            授課時數規範 <i class="fa-solid fa-chevron-down ml-1.5 text-xs"></i>
+                        </span>
+                        <ul class="dropdown-menu absolute left-0 top-full hidden bg-white text-ntpuDark shadow-xl rounded-b-xl py-2 w-60 border-t-2 border-ntpuGold">
+                            <li><a href="javascript:void(0)" onclick="switchTab('page1')" class="block px-5 py-3 text-sm hover:bg-gray-100 font-medium text-gray-700 hover:text-ntpuBlue">授課時數基本規定</a></li>
+                            <li><a href="javascript:void(0)" onclick="switchTab('page2')" class="block px-5 py-3 text-sm hover:bg-gray-100 font-medium text-gray-700 hover:text-ntpuBlue">授課時數減授與認列準則</a></li>
+                            <li><a href="javascript:void(0)" onclick="switchTab('page3')" class="block px-5 py-3 text-sm hover:bg-gray-100 font-medium text-gray-700 hover:text-ntpuBlue">授課時數加權方法</a></li>
+                            <li><a href="javascript:void(0)" onclick="switchTab('page4')" class="block px-5 py-3 text-sm hover:bg-gray-100 font-medium text-gray-700 hover:text-ntpuBlue">教師超支鐘點費核計</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="dropdown relative h-full flex items-center cursor-pointer">
+                        <span class="hover:text-ntpuGold transition-colors py-2 flex items-center tracking-wide">
+                            課程開授原則 <i class="fa-solid fa-chevron-down ml-1.5 text-xs"></i>
+                        </span>
+                        <ul class="dropdown-menu absolute left-0 top-full hidden bg-white text-ntpuDark shadow-xl rounded-b-xl py-2 w-60 border-t-2 border-ntpuGold">
+                            <li><a href="javascript:void(0)" onclick="switchTab('page5')" class="block px-5 py-3 text-sm hover:bg-gray-100 font-medium text-gray-700 hover:text-ntpuBlue">課程結構規範</a></li>
+                            <li><a href="javascript:void(0)" onclick="switchTab('page6')" class="block px-5 py-3 text-sm hover:bg-gray-100 font-medium text-gray-700 hover:text-ntpuBlue">課程開授人數規定</a></li>
+                            <li><a href="javascript:void(0)" onclick="switchTab('page7')" class="block px-5 py-3 text-sm hover:bg-gray-100 font-medium text-gray-700 hover:text-ntpuBlue">免予停開之規定</a></li>
+                        </ul>
+                    </div>
+		
+		    <div class="dropdown relative h-full flex items-center cursor-pointer">
+                        <span class="hover:text-ntpuGold transition-colors py-2 flex items-center tracking-wide">
+                            跨校比較 <i class="fa-solid fa-chevron-down ml-1.5 text-xs"></i>
+                        </span>
+			<ul class="dropdown-menu absolute left-0 top-full hidden bg-white text-ntpuDark shadow-xl rounded-b-xl py-2 w-60 border-t-2 border-ntpuGold">
+                            <li><a href="javascript:void(0)" onclick="switchTab('page8')" class="block px-5 py-3 text-sm hover:bg-gray-100 font-medium text-gray-700 hover:text-ntpuBlue">台政北授課規範</a></li>
+			    <li><a href="javascript:void(0)" onclick="switchTab('page9')" class="block px-5 py-3 text-sm hover:bg-gray-100 font-medium text-gray-700 hover:text-ntpuBlue">經濟系跨校比較</a></li>
+			</ul>
+			</div>
+
+		    <div class="h-full flex items-center cursor-pointer">
+                        <a href="javascript:void(0)" 
+                           onclick="switchTab('page10')" 
+                           class="hover:text-ntpuGold transition-colors py-2 flex items-center tracking-wide font-medium">
+                            <i class="fa-solid fa-download mr-1.5 text-sm"></i>法規下載
+                        </a>
+                    </div>
+
+			<div class="h-full flex items-center cursor-pointer">
+    <a href="javascript:void(0)"
+       onclick="switchTab('page11')"
+       class="hover:text-ntpuGold transition-colors py-2 flex items-center tracking-wide font-medium">
+        <i class="fa-solid fa-chart-column mr-1.5 text-sm"></i>教師授課分析
+    </a>
+</div>
+
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <div class="bg-gradient-to-r from-ntpuBlue to-blue-955 py-6 shadow-inner">
+        <div class="max-w-5xl mx-auto text-center h-4"></div>
+    </div>
+
+    <main class="flex-grow max-w-4xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-12">
+        
+        <div id="page1" class="tab-content active bg-white rounded-2xl p-8 md:p-10 shadow-sm border border-gray-100">
+            <div class="border-b-2 border-ntpuBlue pb-5 mb-8">
+		<div class="flex justify-between items-end">
+            <div>
+                <span class="text-xs font-bold text-ntpuBlue tracking-widest uppercase block mb-1">授課時數規範</span>
+                <h2 class="text-2xl font-black text-ntpuDark flex items-center tracking-wide">授課時數基本規定</h2>
+            </div>
+            
+            <div class="flex items-center px-4 py-1.5 bg-blue-50 border border-blue-100 rounded-lg text-ntpuBlue text-xs font-medium shadow-sm">
+                <i class="fa-solid fa-lightbulb mr-2 text-ntpuGold"></i>
+                <span>提示：將滑鼠移至標題或細項，即可查看法規依據。</span>
+            </div>
+        </div>
+        </div>
+            
+            <p class="group relative text-base font-semibold text-gray-800 mb-6 flex items-center cursor-help w-max">
+		<i class="fa-solid fa-graduation-cap text-ntpuBlue mr-2"></i> 專任教師每學期每週的基本授課時數依職級區分：
+		<span class="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-max px-3 py-1.5 bg-ntpuDark text-white text-xs font-normal rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+                《教師授課時數及超支鐘點費核計辦法》第二條
+                <svg class="absolute text-ntpuDark h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255"><polygon class="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
+            	</span>
+		</p>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-5 mb-10">
+                <div class="bg-gray-50 p-6 rounded-2xl text-center border border-gray-200/60 shadow-sm transition-transform hover:scale-[1.02]">
+                    <p class="text-xs text-gray-500 font-bold uppercase tracking-wider">教授</p>
+                    <p class="text-3xl font-black text-ntpuBlue mt-2">8 <span class="text-sm font-normal text-gray-600">小時</span></p>
+                </div>
+                <div class="bg-gray-50 p-6 rounded-2xl text-center border border-gray-200/60 shadow-sm transition-transform hover:scale-[1.02]">
+                    <p class="text-xs text-gray-500 font-bold uppercase tracking-wider">副教授</p>
+                    <p class="text-3xl font-black text-ntpuBlue mt-2">9 <span class="text-sm font-normal text-gray-600">小時</span></p>
+                </div>
+                <div class="bg-gray-50 p-6 rounded-2xl text-center border border-gray-200/60 shadow-sm transition-transform hover:scale-[1.02]">
+                    <p class="text-xs text-gray-500 font-bold uppercase tracking-wider">助理教授</p>
+                    <p class="text-3xl font-black text-ntpuBlue mt-2">9 <span class="text-sm font-normal text-gray-600">小時</span></p>
+                </div>
+                <div class="bg-gray-50 p-6 rounded-2xl text-center border border-gray-200/60 shadow-sm transition-transform hover:scale-[1.02]">
+                    <p class="text-xs text-gray-500 font-bold uppercase tracking-wider">講師</p>
+                    <p class="text-3xl font-black text-ntpuBlue mt-2">10 <span class="text-sm font-normal text-gray-600">小時</span></p>
+                </div>
+            </div>
+
+            <div class="bg-blue-50/40 rounded-2xl p-6 md:p-8 border border-blue-100/70 space-y-5 text-base text-gray-700 leading-relaxed shadow-inner">
+                <h4 class="font-bold text-ntpuBlue flex items-center text-xs tracking-widest uppercase mb-2"><i class="fa-solid fa-calculator mr-2 text-sm"></i> 基本要求與計算方式</h4>
+                <div class="flex items-start"><i class="fa-solid fa-circle-dot text-ntpuBlue/70 mt-1.5 mr-3 text-[10px] flex-shrink-0"></i><p>
+		<span class="group relative cursor-help inline-block">
+		<strong>實體授課要求：</strong>
+		<span class="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-max px-3 py-1.5 bg-ntpuDark text-white text-xs font-normal rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 text-center">
+         	《教師授課時數及超支鐘點費核計辦法》第五條
+                <svg class="absolute text-ntpuDark h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255"><polygon class="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
+        </span>
+        </span>
+		
+		除校長外，專任教師每學期於<strong>日間學制</strong>每週應至少<strong>實體授課 3 小時</strong>（不含加權計算之時數）。</p></div>
+                
+		<div class="flex items-start"><i class="fa-solid fa-circle-dot text-ntpuBlue/70 mt-1.5 mr-3 text-[10px] flex-shrink-0"></i><p>
+		<span class="group relative cursor-help inline-block">
+		<strong>涵蓋範圍：</strong>
+		<span class="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-max px-3 py-1.5 bg-ntpuDark text-white text-xs font-normal rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 text-center">
+         	《教師授課時數及超支鐘點費核計辦法》第二條
+                <svg class="absolute text-ntpuDark h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255"><polygon class="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
+        </span>
+        </span>
+
+		包含學士班、碩士班（不含碩專班）及博士班的授課時數。</p></div>
+                
+		<div class="flex items-start"><i class="fa-solid fa-circle-dot text-ntpuBlue/70 mt-1.5 mr-3 text-[10px] flex-shrink-0"></i><p>
+		<span class="group relative cursor-help inline-block">
+		<strong>計算週期：</strong>
+		<span class="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-max px-3 py-1.5 bg-ntpuDark text-white text-xs font-normal rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 text-center">
+         	《教師授課時數及超支鐘點費核計辦法》第二條
+                <svg class="absolute text-ntpuDark h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255"><polygon class="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
+        </span>
+        </span>
+
+		每學年統計一次，採上、下學期授課時數的平均數計算。</p></div>
+		
+		<div class="flex items-start"><i class="fa-solid fa-circle-dot text-ntpuBlue/70 mt-1.5 mr-3 text-[10px] flex-shrink-0"></i><p>
+		<span class="group relative cursor-help inline-block">
+		<strong>總時數限制：</strong>
+		<span class="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-max px-3 py-1.5 bg-ntpuDark text-white text-xs font-normal rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 text-center">
+         	《教師授課時數及超支鐘點費核計辦法》第十二條
+                <svg class="absolute text-ntpuDark h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255"><polygon class="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
+        </span>
+        </span>
+
+		教師在校內外各學位的授課總時數（不含進修學士班），每週合計<strong>不得超過 16 小時</strong>。</p></div>
+                
+		<div class="flex items-start text-red-700 bg-red-50/50 p-3 rounded-xl border border-red-100/50 mt-2"><i class="fa-solid fa-triangle-exclamation mt-1 mr-3 text-sm flex-shrink-0"></i><p class="leading-relaxed">
+		<span class="group relative cursor-help inline-block">
+		<strong>未達標處理：</strong>
+		<span class="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-max px-3 py-1.5 bg-ntpuDark text-white text-xs font-normal rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 text-center">
+         	《教師授課時數及超支鐘點費核計辦法》第二條
+                <svg class="absolute text-ntpuDark h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255"><polygon class="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
+         </span>
+        </span>
+
+		若未達基本時數，應於次一學年內補足，否則應累計至補足為止，且不發給超支鐘點費。</p></div>
+            </div>
+        </div>
+
+        <div id="page2" class="tab-content bg-white rounded-2xl p-8 md:p-10 shadow-sm border border-gray-100">
+            <div class="border-b-2 border-ntpuBlue pb-5 mb-8">
+		<div class="flex justify-between items-end">
+            <div>
+                <span class="text-xs font-bold text-ntpuBlue tracking-widest uppercase block mb-1">授課時數規範</span>
+                <h2 class="text-2xl font-black text-ntpuDark flex items-center tracking-wide">授課時數減授與認列準則</h2>
+            </div>
+            
+            <div class="flex items-center px-4 py-1.5 bg-blue-50 border border-blue-100 rounded-lg text-ntpuBlue text-xs font-medium shadow-sm">
+                <i class="fa-solid fa-lightbulb mr-2 text-ntpuGold"></i>
+                <span>提示：將滑鼠移至標題或細項，即可查看法規依據。</span>
+            </div>
+        </div>
+	</div>
+            
+            <div class="space-y-6">
+                <div class="bg-gray-50/60 rounded-2xl p-6 border border-gray-200/70 shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b pb-2.5 border-gray-200">
+                        <span class="group relative font-bold text-base text-ntpuBlue flex items-center cursor-help">
+			<i class="fa-solid fa-seedling mr-2"></i> 新聘教師減授
+			<span class="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-max px-3 py-1.5 bg-ntpuDark text-white text-xs font-normal rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+                《教師授課時數及超支鐘點費核計辦法》第二條
+                <svg class="absolute text-ntpuDark h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255"><polygon class="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
+        </span>
+	</span>
+                        <span class="text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200">-3 小時/週</span>
+                    </div>
+                    <div class="text-base text-gray-700 leading-relaxed space-y-2">
+                        <p>• <strong>對象與額度：</strong>新聘之講師、助理教授、副教授，於到校前三年，每學期每週得減授 3 小時。</p>
+                        <p>• <strong>限制條件：</strong>減授期間非外語授課之超授時數不得支領鐘點費，且不得併用本辦法中其他減授規定。若未能於規定年限內升等，需在之後三年內返還已減授時數。</p>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50/60 rounded-2xl p-6 border border-gray-200/70 shadow-sm">
+                    <div class="mb-4 border-b pb-2.5 border-gray-200">
+                        <span class="group relative font-bold text-base text-ntpuBlue inline-flex items-center cursor-help w-max">			
+			<i class="fa-solid fa-user-tie mr-2"></i> 兼任行政職務減授
+			<span class="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-max px-3 py-1.5 bg-ntpuDark text-white text-xs font-normal rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+                《教師授課時數及超支鐘點費核計辦法》第三條
+                <svg class="absolute text-ntpuDark h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255"><polygon class="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
+        </span>
+	</span>
+                    </div>
+                    <div class="text-base text-gray-700 leading-relaxed grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                        <div>• <strong>核減 4 小時：</strong>副校長、教務長、學務長、總務長、研發長、國際長、各學院院長、主任秘書、圖書館長、進修暨推廣部主任、通識中心主任、體育室主任、資訊中心主任、校友中心主任及其轄下之組長職等。</div>
+                        <div>• <strong>核減 3 小時：</strong>各系主任、學位學程主任、研究所所長、師資培育中心主任、華語中心主任。</div>
+                        <div>• <strong>核減 2 小時：</strong>校級或院級研究中心主任。</div>
+                        <div>• <strong>核減 1 小時：</strong>各學分學程召集人。</div>
+                        <div class="md:col-span-2">• <strong>核減 0.5 小時：</strong>跨領域微學程召集人。</div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50/60 rounded-2xl p-6 border border-gray-200/70 shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b pb-2.5 border-gray-200">
+                        <span class="group relative font-bold text-base text-ntpuBlue flex items-center cursor-help">
+			<i class="fa-solid fa-microscope mr-2"></i> 研究、指導及計畫認列
+			<span class="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-max px-3 py-1.5 bg-ntpuDark text-white text-xs font-normal rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+                《教師授課時數及超支鐘點費核計辦法》第四條
+                <svg class="absolute text-ntpuDark h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255"><polygon class="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
+        </span>
+	</span>
+                        <span class="text-xs font-bold text-red-700 bg-red-50 px-2.5 py-1 rounded-md border border-red-200">與行政減授合計，每學期每週上限 4 小時</span>
+                    </div>
+                    <p class="text-xs text-gray-500 mb-3">※ 下列項目得認列為授課時數，但不計入超支鐘點費，<strong>合計每學期每週上限 3 小時：</strong></p>
+                    <div class="text-base text-gray-700 leading-relaxed space-y-2">
+                        <p>• <strong>傑出研究：</strong>獲國科會傑出研究獎勵者，次學年每學期核減 3 小時。</p>
+                        <p>• <strong>國科會/非國科會計畫：</strong>行政管理費15萬元以上者，執行計畫之主持人或共同主持人擇一，每案核減 1 小時（每學期上限 2 案/2 小時）。</p>
+                        <p>• <strong>教育部計畫：</strong>擔任主持人且經費達百萬元以上者，計畫期間每學期核減 1 小時。</p>
+                        <p>• <strong>指導研究生：</strong>每位學生計 1 小時。碩士生採計 1 年，博士生採計 2 年。每學期合計上限為 2 小時。</p>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50/60 rounded-2xl p-6 border border-gray-200/70 shadow-sm">
+                    <div class="mb-4 border-b pb-2.5 border-gray-200">
+                        <span class="group relative font-bold text-base text-ntpuBlue inline-flex items-center cursor-help w-max">
+			<i class="fa-solid fa-robot mr-2"></i> AI 科技賦能種子萌芽計畫
+			<span class="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-max px-3 py-1.5 bg-ntpuDark text-white text-xs font-normal rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+                《教師授課時數及超支鐘點費核計辦法》第五條
+                <svg class="absolute text-ntpuDark h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255"><polygon class="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
+            </span>
+		</span>
+                    </div>
+                    <div class="text-base text-gray-700 leading-relaxed space-y-2">
+                        <p>• <strong>減授額度：</strong>經審核通過者，減授時數上限為該教師的全部基本授課時數（即 8 至 10 小時）。</p>
+                        <p>• <strong>彈性規定：</strong>可在一學年內自行分配於不同學期減授，且不受「每學期至少實體授課 3 小時」之限制。</p>
+                        <p class="text-red-600 font-semibold">• 限制：僅能認列為基本時數，不得計入超支鐘點費核算。</p>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50/60 rounded-2xl p-6 border border-gray-200/70 shadow-sm">
+                    <div class="mb-4 border-b pb-2.5 border-gray-200">
+                        <span class="font-bold text-base text-ntpuBlue flex items-center"><i class="fa-solid fa-folder-plus mr-2"></i> 其他補充規定</span>
+                    </div>
+                    <div class="text-base text-gray-700 leading-relaxed space-y-2">
+                        <p>• 
+			<span class="group relative cursor-help inline-block">
+			<strong>進修部授課：</strong>
+			<span class="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-max px-3 py-1.5 bg-ntpuDark text-white text-xs font-normal rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 text-center">
+         	《教師授課時數及超支鐘點費核計辦法》第四條第五款
+                <svg class="absolute text-ntpuDark h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255"><polygon class="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
+        </span>
+        </span>
+
+			專任教師可利用進修學士班課程補足基本時數，每學期以一門課（3 小時）為限。</p>
+                        <p>• 
+			<span class="group relative cursor-help inline-block">
+			<strong>暑期課程：</strong>
+			<span class="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-max px-3 py-1.5 bg-ntpuDark text-white text-xs font-normal rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 text-center">
+         	《教師授課時數及超支鐘點費核計辦法》第四條第六款
+                <svg class="absolute text-ntpuDark h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255"><polygon class="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
+        </span>
+        </span>
+
+			開設學士班暑期課程，經同意後得計入次學年基本時數（每學年上限 2 門/6 學分）。</p>
+                        <p>• 
+			<span class="group relative cursor-help inline-block">
+			<strong>最低實體授課要求：</strong>
+<span class="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-max px-3 py-1.5 bg-ntpuDark text-white text-xs font-normal rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 text-center">
+         	《教師授課時數及超支鐘點費核計辦法》第五條
+                <svg class="absolute text-ntpuDark h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255"><polygon class="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
+        </span>
+        </span>
+			除校長與前述 AI 計畫獲准者外，專任教師每學期於日間學制每週應至少實體授課 3 小時。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="page3" class="tab-content bg-white rounded-2xl p-8 md:p-10 shadow-sm border border-gray-100">
+            <div class="border-b-2 border-ntpuBlue pb-5 mb-8">
+		<div class="flex justify-between items-end">
+            <div>
+                <span class="text-xs font-bold text-ntpuBlue tracking-widest uppercase block mb-1">授課時數規範</span>
+                <h2 class="text-2xl font-black text-ntpuDark flex items-center tracking-wide">授課時數加權方法</h2>
+            </div>
+            
+            <div class="flex items-center px-4 py-1.5 bg-blue-50 border border-blue-100 rounded-lg text-ntpuBlue text-xs font-medium shadow-sm">
+                <i class="fa-solid fa-lightbulb mr-2 text-ntpuGold"></i>
+                <span>提示：將滑鼠移至標題或細項，即可查看法規依據。</span>
+            </div>
+        </div>
+        </div>
+            
+            <div class="space-y-6 text-base">
+                
+                <div class="bg-gray-50/60 p-6 rounded-2xl border border-gray-200/70 shadow-sm flex flex-col md:flex-row md:items-start gap-4">
+                    <div class="bg-blue-100 text-ntpuBlue w-12 h-12 rounded-xl flex items-center justify-center text-xl flex-shrink-0 mx-auto md:mx-0">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                    <div class="flex-grow leading-relaxed">
+                        <h4 class="font-bold text-lg text-ntpuBlue mb-2 text-center md:text-left">
+			<span class="group relative cursor-help inline-block">
+			大班教學加權
+			<span class="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-max px-3 py-1.5 bg-ntpuDark text-white text-xs font-normal rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 text-center">
+         	《教師授課時數及超支鐘點費核計辦法》第七條第一款
+                <svg class="absolute text-ntpuDark h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255"><polygon class="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
+        </span>
+        </span>
+			</h4>
+                        <p class="text-gray-500 text-xs mb-3 text-center md:text-left">依據上課班級人數進行加權計算：</p>
+                        <ul class="space-y-2 text-gray-700 pl-2">
+                            <li>• <strong>75 至 89 人：</strong>以 1.2 倍計算。</li>
+                            <li>• <strong>90 人以上：</strong>以 1.5 倍計算。</li>
+                            <li>• <strong>120 人以上：</strong>以 2 倍計算。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50/60 p-6 rounded-2xl border border-gray-200/70 shadow-sm flex flex-col md:flex-row md:items-start gap-4">
+                    <div class="bg-blue-100 text-ntpuBlue w-12 h-12 rounded-xl flex items-center justify-center text-xl flex-shrink-0 mx-auto md:mx-0">
+                        <i class="fa-solid fa-earth-americas"></i>
+                    </div>
+                    <div class="flex-grow leading-relaxed">
+                        <h4 class="font-bold text-lg text-ntpuBlue mb-3 text-center md:text-left">
+			<span class="group relative cursor-help inline-block">
+			外語與社會責任加權
+			<span class="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-max px-3 py-1.5 bg-ntpuDark text-white text-xs font-normal rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 text-center">
+         《教師授課時數及超支鐘點費核計辦法》第七條第四款和第六款
+                <svg class="absolute text-ntpuDark h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255"><polygon class="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
+            </span>
+        </span>
+			</h4>
+                        <ul class="space-y-2 text-gray-700 pl-2">
+                            <li>• <strong>外語授課加權：</strong>經核定通過以外語授課之課程，依學校相關要點以 <strong>1.5 倍</strong>加權計算。</li>
+                            <li>• <strong>大學社會責任 (USR) 課程：</strong>經審議通過之大學社會責任實踐課程，其授課時數以 <strong>1.5 倍</strong>計算（此類課程之超支鐘點費由教育部高教深耕計畫經費支出）。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50/60 p-6 rounded-2xl border border-gray-200/70 shadow-sm flex flex-col md:flex-row md:items-start gap-4">
+                    <div class="bg-blue-100 text-ntpuBlue w-12 h-12 rounded-xl flex items-center justify-center text-xl flex-shrink-0 mx-auto md:mx-0">
+                        <i class="fa-solid fa-desktop"></i>
+                    </div>
+                    <div class="flex-grow leading-relaxed">
+                        <h4 class="font-bold text-lg text-ntpuBlue mb-2 text-center md:text-left">
+			<span class="group relative cursor-help inline-block">
+			磨課師課程搭配實體課程
+			<span class="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-max px-3 py-1.5 bg-ntpuDark text-white text-xs font-normal rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 text-center">
+         	《教師授課時數及超支鐘點費核計辦法》第七條第三款
+                <svg class="absolute text-ntpuDark h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255"><polygon class="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
+        </span>
+        </span>
+			</h4>
+                        <p class="text-gray-500 text-xs mb-2 text-center md:text-left">經核定通過於學士班或進修學士班開設者：</p>
+                        <ul class="space-y-2 text-gray-700 pl-2">
+                            <li>• <strong>首次搭配實體者：</strong>教師授課時數以 18 週計算。</li>
+                            <li>• <strong>非首次搭配者：</strong>教師授課時數以 6 週計算。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50/60 p-6 rounded-2xl border border-gray-200/70 shadow-sm flex flex-col md:flex-row md:items-start gap-4">
+                    <div class="bg-blue-100 text-ntpuBlue w-12 h-12 rounded-xl flex items-center justify-center text-xl flex-shrink-0 mx-auto md:mx-0">
+                        <i class="fa-solid fa-handshake"></i>
+                    </div>
+                    <div class="flex-grow leading-relaxed">
+                        <h4 class="font-bold text-lg text-ntpuBlue mb-2 text-center md:text-left">
+			<span class="group relative cursor-help inline-block">
+			跨領域共授課程
+			<span class="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-max px-3 py-1.5 bg-ntpuDark text-white text-xs font-normal rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 text-center">
+         《教師授課時數及超支鐘點費核計辦法》第七條第五款
+                <svg class="absolute text-ntpuDark h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255"><polygon class="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
+		</span>
+        	</span>
+			</h4>
+                        <p class="text-gray-500 text-xs mb-2 text-center md:text-left">依據實際出席上課時數計入，並設有總鐘點上限：</p>
+                        <ul class="space-y-2 text-gray-700 pl-2">
+                            <li>• <strong>2 位教師共授：</strong>鐘點總數以該課程學分數之 2 倍為上限。</li>
+                            <li>• <strong>3 位以上教師共授（生師比達 8:1 時）：</strong>鐘點總數以該課程 3 倍為上限。</li>
+                            <li>• <strong>3 位以上教師共授（生師比未達 8:1 時）：</strong>鐘點總數以該課程 2 倍為上限。</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-50/60 p-6 rounded-2xl border border-gray-200/70 text-base text-gray-700 space-y-3 leading-relaxed my-6">
+                <h4 class="font-bold text-ntpuBlue mb-2 flex items-center"><i class="fa-solid fa-list-check mr-2 text-sm"></i> 其他特定課程加計</h4>
+                <p>• 
+		<span class="group relative cursor-help inline-block">
+		<strong>大一國文（僑外生組）：</strong>
+		<span class="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-max px-3 py-1.5 bg-ntpuDark text-white text-xs font-normal rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 text-center">
+         《教師授課時數及超支鐘點費核計辦法》第七條第七款
+                <svg class="absolute text-ntpuDark h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255"><polygon class="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
+            </span>
+        </span>
+
+		「經典閱讀與詮釋」課程上下學期每班加計作文 1 小時，合計以 3 小時計。非僑外生組及進修學士班則不加計。</p>
+                <p>• 
+		<span class="group relative cursor-help inline-block">
+		<strong>衛星課程：</strong>		
+		<span class="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-max px-3 py-1.5 bg-ntpuDark text-white text-xs font-normal rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 text-center">
+         《教師授課時數及超支鐘點費核計辦法》第七條第九款
+                <svg class="absolute text-ntpuDark h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255"><polygon class="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
+            </span>
+        </span>
+
+		配合教育部「臺灣大專院校人工智慧學程聯盟 (TAICA)」開設之課程，按授課時數核實支給，每位教師每學期以 1 門為限。</p>
+                <p>• 
+		<span class="group relative cursor-help inline-block">
+		<strong>實習與實作：</strong>
+		<span class="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-max px-3 py-1.5 bg-ntpuDark text-white text-xs font-normal rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 text-center">
+         《教師授課時數及超支鐘點費核計辦法》第七條第八款
+                <svg class="absolute text-ntpuDark h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255"><polygon class="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
+            </span>
+        </span>
+
+		依各系（所）課程規劃表中的開課屬性採計授課鐘點。</p>
+            </div>
+
+            <div class="bg-gray-100 text-xs text-gray-700 p-4 rounded-xl border border-gray-200 leading-relaxed">
+                <strong>⚠️ 重要注意事項：</strong>
+                <ul class="list-disc pl-4 mt-1 space-y-1">
+                    <li><strong>擇一適用：</strong>同一門科目若同時符合多項加權規定（前述一至六項），僅得擇一加權計算，不得累加。</li>
+                    <li><strong>超支上限提升：</strong>一般專任教師每週超支鐘點費上限為 4 小時。但若因「大班教學」或「外語授課」加權後導致超過者，該學期超支鐘點最高得放寬以 <strong>6 小時</strong>為限。</li>
+                    <li><strong>基本時數要求：</strong>專任教師每學期於日間學制每週應至少實體授課 3 小時，此 3 小時不含加權計算之時數。</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="page4" class="tab-content bg-white rounded-2xl p-8 md:p-10 shadow-sm border border-gray-100">
+            <div class="border-b-2 border-ntpuBlue pb-5 mb-8">
+		<div class="flex justify-between items-end">
+            <div>
+                <span class="text-xs font-bold text-ntpuBlue tracking-widest uppercase block mb-1">授課時數規範</span>
+                <h2 class="text-2xl font-black text-ntpuDark flex items-center tracking-wide">
+		<span class="group relative cursor-help inline-block">
+		教師超支鐘點費核計
+		<span class="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-max px-3 py-1.5 bg-ntpuDark text-white text-xs font-normal rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 text-center">
+         《教師授課時數及超支鐘點費核計辦法》第八條
+                <svg class="absolute text-ntpuDark h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255"><polygon class="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
+            </span>
+        </span>
+		</h2>
+            </div>
+            
+            <div class="flex items-center px-4 py-1.5 bg-blue-50 border border-blue-100 rounded-lg text-ntpuBlue text-xs font-medium shadow-sm">
+                <i class="fa-solid fa-lightbulb mr-2 text-ntpuGold"></i>
+                <span>提示：將滑鼠移至標題或細項，即可查看法規依據。</span>
+            </div>
+        </div> 
+        </div>
+            
+            <div class="border border-gray-200 rounded-2xl overflow-hidden mb-8 shadow-sm">
+                <table class="min-w-full text-base divide-y divide-gray-200">
+                    <thead class="bg-gray-50 text-ntpuBlue font-bold">
+                        <tr>
+                            <th class="px-5 py-4 text-left w-1/3 tracking-wider">項目</th>
+                            <th class="px-5 py-4 text-left tracking-wider">具體核計與規範內容</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200 text-gray-700 leading-relaxed">
+                        <tr>
+                            <td class="px-5 py-4 font-semibold bg-gray-50/50">核給與計算方式</td>
+                            <td class="px-5 py-4">當專任教師符合計入超支鐘點之總時數超過其基本授課時數（教授 8 小時、副/助理教授 9 小時、講師 10 小時）時，得支領超支鐘點費。採每學年統計一次，以上、下學期授課時數之平均數計算。超支鐘點費於下學期再一併依據實際授課時數核實發放。</td>
+                        </tr>
+                        <tr>
+                            <td class="px-5 py-4 font-semibold bg-gray-50/50">每週超支時數上限</td>
+                            <td class="px-5 py-4">
+                                • 一般上限：每週支領上限為 <strong>4 小時</strong>。<br>
+                                • 特殊上限（最高 6 小時）：若是因為「大班教學」或「外語授課」的加權計算導致超過上限者，該學期超支鐘點最高得放寬以 6 小時為限。<br>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="px-5 py-4 font-semibold bg-gray-50/50 text-red-700">不計入超支之情形</td>
+                            <td class="px-5 py-4 text-red-600">
+                                • 研究、指導及計畫認列減授<br>
+                                • 進修部補足時數：以進修學士班課程補足基本授課時數的部分。<br>
+                                • 暑期課程認列：經同意計入次學年基本授課時數的暑期課程。<br>
+                                • AI 減授計畫：經「AI 種子萌芽試行要點」核准減授之時數，僅得認列為基本時數。<br>
+                                • 未補足基本時數者：若教師前一學年未達基本時數且未補足，在補足前不發給超支鐘點費。
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="bg-gray-50/60 p-6 rounded-2xl border border-gray-200/70 text-base text-gray-700 space-y-3 leading-relaxed">
+                <h4 class="font-bold text-ntpuBlue flex items-center mb-1"><i class="fa-solid fa-user-gear mr-2 text-sm"></i> 特殊對象之超支與未達人數處理規定</h4>
+                <p>• 
+		<span class="group relative cursor-help inline-block">
+		<strong>新聘教師：</strong>
+		<span class="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-max px-3 py-1.5 bg-ntpuDark text-white text-xs font-normal rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 text-center">
+         《教師授課時數及超支鐘點費核計辦法》第二條
+                <svg class="absolute text-ntpuDark h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255"><polygon class="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
+            </span>
+        </span>
+
+		前三年減授期間，其「非外語授課」之超授時數不得支領超支鐘點費；但因大班或外語授課加權後產生的超支鐘點則可支領，上限為 4 小時。</p>
+                
+		<p>• 
+		<span class="group relative cursor-help inline-block">
+		<strong>約聘及專案教師：</strong>
+		<span class="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-max px-3 py-1.5 bg-ntpuDark text-white text-xs font-normal rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 text-center">
+         《教師授課時數及超支鐘點費核計辦法》第十一條
+                <svg class="absolute text-ntpuDark h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255"><polygon class="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
+            </span>
+        </span>
+
+		若因外語授課或大班教學加權後超過約定授課時數，得支領超支鐘點費，每週上限 4 小時。</p>
+                
+		<p>• 
+		<span class="group relative cursor-help inline-block">
+		<strong>兼任教師：</strong>
+		<span class="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-max px-3 py-1.5 bg-ntpuDark text-white text-xs font-normal rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 text-center">
+         《教師授課時數及超支鐘點費核計辦法》第九條
+                <svg class="absolute text-ntpuDark h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255"><polygon class="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
+            </span>
+        </span>
+
+		兼任教師若未具公職或其他專任身分，得準用加權規定支領鐘點費，但超授之時數不予支給。</p>
+
+                <p>• 
+		<span class="group relative cursor-help inline-block">
+		<strong>未達開課人數標準之處理：</strong>
+		<span class="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-max px-3 py-1.5 bg-ntpuDark text-white text-xs font-normal rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 text-center">
+         《教師授課時數及超支鐘點費核計辦法》第六條第一款
+                <svg class="absolute text-ntpuDark h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255"><polygon class="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
+            </span>
+        </span>
+
+		若課程因特殊情形續開但人數未達標，專任教師授課可列入基本時數；若產生超支鐘點，則依「實際選課人數佔最低標準之比例」核給鐘點費。</p>
+            </div>
+        </div>
+
+        <div id="page5" class="tab-content bg-white rounded-2xl p-8 md:p-10 shadow-sm border border-gray-100">
+            <div class="border-b-2 border-ntpuBlue pb-5 mb-8">
+		<div class="flex justify-between items-end">
+            <div>
+                <span class="text-xs font-bold text-ntpuBlue tracking-widest uppercase block mb-1">課程開授原則</span>
+                <h2 class="text-2xl font-black text-ntpuDark flex items-center tracking-wide">課程結構規範</h2>
+            </div>
+            
+            <div class="flex items-center px-4 py-1.5 bg-blue-50 border border-blue-100 rounded-lg text-ntpuBlue text-xs font-medium shadow-sm">
+                <i class="fa-solid fa-lightbulb mr-2 text-ntpuGold"></i>
+                <span>提示：將滑鼠移至標題或細項，即可查看法規依據。</span>
+            </div>
+        </div>
+        </div>
+            <p class="text-xs text-red-600 font-bold bg-red-50/60 p-3 rounded-xl mb-6 flex items-center shadow-sm"><i class="fa-solid fa-circle-exclamation mr-2 text-sm"></i> 注意提示：此原則不適用於進修學士班、碩士在職專班及師資培育中心，該等單位依校內相關辦法辦理。</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5 text-base leading-relaxed">
+                <div class="p-6 bg-gray-50 rounded-2xl border border-gray-200/60 shadow-sm flex flex-col justify-start">
+                    <p class="group relative font-bold text-ntpuBlue mb-3 flex items-center justify-center cursor-help">
+			<i class="fa-solid fa-chart-line mr-2"></i> 標竿學習機制
+
+			<span class="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-max px-3 py-1.5 bg-ntpuDark text-white text-xs font-normal rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+                《課程開授基本原則》第一條（一）
+                		<svg class="absolute text-ntpuDark h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255"><polygon class="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
+           		</span>
+
+			</p>
+                    <p class="text-gray-600">各學系應參考三所國內外標竿學校相似學系之課程結構，每四年至少檢討一次專業必修與畢業總學分，且畢業總學分不得超過標竿學校最高者 3 學分。</p>
+                </div>
+                <div class="p-6 bg-gray-50 rounded-2xl border border-gray-200/60 shadow-sm flex flex-col justify-start text-center">
+                    <p class="group relative font-bold text-ntpuBlue mb-2 flex items-center justify-center cursor-help">
+			<i class="fa-solid fa-ban mr-2"></i> 必修學分上限
+
+			<span class="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-max px-3 py-1.5 bg-ntpuDark text-white text-xs font-normal rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+                《課程開授基本原則》第一條（二）第二款
+                	<svg class="absolute text-ntpuDark h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255"><polygon class="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
+            		</span>
+		    </p>
+                    <p class="text-3xl font-black text-indigo-950 my-2">不宜超過 45%</p>
+                    <p class="text-gray-600 text-sm">專業必修學分合計不宜超過畢業總學分數（含共同必修）的 45%。</p>
+                </div>
+                <div class="p-6 bg-gray-50 rounded-2xl border border-gray-200/60 shadow-sm flex flex-col justify-start">
+                    <p class="group relative font-bold text-ntpuBlue mb-3 flex items-center justify-center cursor-help">
+			<i class="fa-solid fa-lock-open mr-2"></i> 選修學分保障
+			<span class="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-max px-3 py-1.5 bg-ntpuDark text-white text-xs font-normal rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+                《課程開授基本原則》第一條（二）第三款
+                	<svg class="absolute text-ntpuDark h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255"><polygon class="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
+            		</span>
+		    </p>
+                    <p class="text-gray-600">專業選修學分應至少占畢業總學分的 1/4，且自由選修學分應至少開放 16 學分。</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="page6" class="tab-content bg-white rounded-2xl p-8 md:p-10 shadow-sm border border-gray-100">
+            <div class="border-b-2 border-ntpuBlue pb-5 mb-8">
+		<div class="flex justify-between items-end">
+            <div>
+                <span class="text-xs font-bold text-ntpuBlue tracking-widest uppercase block mb-1">課程開授原則</span>
+                <h2 class="text-2xl font-black text-ntpuDark flex items-center tracking-wide">課程開授人數規定</h2>
+            </div>
+            
+            <div class="flex items-center px-4 py-1.5 bg-blue-50 border border-blue-100 rounded-lg text-ntpuBlue text-xs font-medium shadow-sm">
+                <i class="fa-solid fa-lightbulb mr-2 text-ntpuGold"></i>
+                <span>提示：將滑鼠移至標題或細項，即可查看法規依據。</span>
+            </div>
+        </div>
+        </div>
+            
+            <div class="space-y-6 text-base leading-relaxed">
+                
+                <div class="bg-gray-50/60 p-6 rounded-2xl border border-gray-200/70 shadow-sm flex flex-col md:flex-row md:items-start gap-4">
+                    <div class="bg-blue-100 text-ntpuBlue w-12 h-12 rounded-xl flex items-center justify-center text-xl flex-shrink-0 mx-auto md:mx-0">
+                        <i class="fa-solid fa-users-slash"></i>
+                    </div>
+                    <div class="flex-grow">
+                        <h4 class="font-bold text-lg text-ntpuBlue mb-2 text-center md:text-left">
+			<span class="group relative cursor-help inline-block">
+			課程開課人數最低標準
+			<span class="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-max px-3 py-1.5 bg-ntpuDark text-white text-xs font-normal rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 text-center">
+                	《課程開授基本原則》第三條（一）
+                	<svg class="absolute text-ntpuDark h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255"><polygon class="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
+            	</span>
+        	</span>
+		</h4>
+                        <p class="text-gray-500 text-xs mb-3 text-center md:text-left">若課程未達以下人數標準原則上應予停開：</p>
+                        <ul class="space-y-2 text-gray-700 pl-2">
+                            <li>• <strong>專任教師：</strong>學士班 8 人以上；碩士班 2 人以上；博士班 1 人以上。</li>
+                            <li>• <strong>兼任教師：</strong>學士班 10 人以上；碩士班 2 人以上；博士班 1 人以上。</li>
+                            <li>• <strong>全英語授課（EMI）學士班課程：</strong>專任教師 6 人以上、兼任教師 8 人以上。</li>
+                            <li class="text-green-700 font-bold mt-1">• <strong>「無界學習」課程：</strong>不受上述開課人數最低標準之限制。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50/60 p-6 rounded-2xl border border-gray-200/70 shadow-sm flex flex-col md:flex-row md:items-start gap-4">
+                    <div class="bg-blue-100 text-ntpuBlue w-12 h-12 rounded-xl flex items-center justify-center text-xl flex-shrink-0 mx-auto md:mx-0">
+                        <i class="fa-solid fa-arrows-split-up-and-left"></i>
+                    </div>
+                    <div class="flex-grow">
+                        <h4 class="font-bold text-lg text-ntpuBlue mb-2 text-center md:text-left">
+			<span class="group relative cursor-help inline-block">
+			分班上課之人數標準
+			<span class="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-max px-3 py-1.5 bg-ntpuDark text-white text-xs font-normal rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 text-center">
+                	《課程開授基本原則》第二條（一）
+                	<svg class="absolute text-ntpuDark h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255"><polygon class="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
+           	</span>
+        	</span>
+		</h4>
+                        <p class="text-gray-500 text-xs mb-3 text-center md:text-left">符合以下人數條件時，課程得分班上課：</p>
+                        <ul class="space-y-2 text-gray-700 pl-2">
+                            <li>• <strong>學士班基礎課程：</strong>選課人數達 75 人以上。</li>
+                            <li>• <strong>研討類型課程：</strong>碩士班達 30 人以上、博士班達 10 人以上。</li>
+                            <li>• <strong>實習與實作課程：</strong>由任課教師依場地設備限制或教學性質設定分班人數。</li>
+                            <li>• <strong>EMI 課程：</strong>學士班單班學系每學期得於必修課申請增開 1 班 EMI 課程。</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-50/60 p-6 rounded-2xl border border-gray-200/70 text-base text-gray-700 space-y-3 leading-relaxed mt-6">
+                <h4 class="font-bold text-ntpuBlue flex items-center mb-1"><i class="fa-solid fa-clipboard-check mr-2 text-sm"></i> 其餘開課規定</h4>
+                <p>• 
+		<span class="group relative cursor-help inline-block">
+		<strong>外系名額保障：</strong>
+		<span class="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-max px-3 py-1.5 bg-ntpuDark text-white text-xs font-normal rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 text-center">
+                《課程開授基本原則》第三條（二）
+                <svg class="absolute text-ntpuDark h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255"><polygon class="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
+         </span>
+	 </span>
+
+	為鼓勵跨領域學習，各系課程應外加至少 15% 的名額，優先提供給雙主修、輔系及外系學生。若初選階段本系人數已逾 100 人，此外加名額得維持至少 10%。若因教室容量不足，無法外加至 15% 者，由課務組彈性處理。</p>
+                <p>• 
+		<span class="group relative cursor-help inline-block">
+		<strong>必修課限制：</strong>
+		<span class="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-max px-3 py-1.5 bg-ntpuDark text-white text-xs font-normal rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 text-center">
+                《課程開授基本原則》第二條（三）
+                <svg class="absolute text-ntpuDark h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255"><polygon class="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
+        </span>
+        </span>
+		
+		各系所專業必修課程應由專任教師授課。</p>
+               </div>
+        </div>
+
+        <div id="page7" class="tab-content bg-white rounded-2xl p-8 md:p-10 shadow-sm border border-gray-100">
+            <div class="border-b-2 border-ntpuBlue pb-5 mb-8">
+		<div class="flex justify-between items-end">
+            <div>
+                <span class="text-xs font-bold text-ntpuBlue tracking-widest uppercase block mb-1">課程開授原則</span>
+                <h2 class="text-2xl font-black text-ntpuDark flex items-center tracking-wide">
+		<span class="group relative cursor-help inline-block">
+		免予停開之規定
+		 <span class="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-max px-3 py-1.5 bg-ntpuDark text-white text-xs font-normal rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 text-center">
+                《課程開授基本原則》第三條（一）第四款
+                <svg class="absolute text-ntpuDark h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255"><polygon class="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
+        </span>
+        </span>
+		</h2>
+		</div>
+		
+		<div class="flex items-center px-4 py-1.5 bg-blue-50 border border-blue-100 rounded-lg text-ntpuBlue text-xs font-medium shadow-sm">
+                <i class="fa-solid fa-lightbulb mr-2 text-ntpuGold"></i>
+                <span>提示：將滑鼠移至標題或細項，即可查看法規依據。</span>
+		</div>
+            </div>
+            </div>
+
+            <p class="text-base text-gray-500 mb-4 leading-relaxed">※ 即便選課人數未達最低標準，經依程序簽准後，符合下列情形之一者得不停開：</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-base leading-loose">
+                <div class="flex items-center p-4 bg-gray-50 rounded-2xl border border-gray-200/60 text-gray-700 shadow-sm transition-transform hover:scale-[1.01]">
+                    <i class="fa-regular fa-square-check text-green-600 mr-3 text-lg flex-shrink-0"></i>
+                    <span>碩士班招生名額 10 人以下之系所。</span>
+                </div>
+                <div class="flex items-center p-4 bg-gray-50 rounded-2xl border border-gray-200/60 text-gray-700 shadow-sm transition-transform hover:scale-[1.01]">
+                    <i class="fa-regular fa-square-check text-green-600 mr-3 text-lg flex-shrink-0"></i>
+                    <span>學士班之專題製作、實習、國防教育、師資培育等特殊課程。</span>
+                </div>
+                <div class="flex items-center p-4 bg-gray-50 rounded-2xl border border-gray-200/60 text-gray-700 shadow-sm transition-transform hover:scale-[1.01]">
+                    <i class="fa-regular fa-square-check text-green-600 mr-3 text-lg flex-shrink-0"></i>
+                    <span>有外國學生修習之碩士班課程或華語中心課程。</span>
+                </div>
+                <div class="flex items-center p-4 bg-gray-50 rounded-2xl border border-gray-200/60 text-gray-700 shadow-sm transition-transform hover:scale-[1.01]">
+                    <i class="fa-regular fa-square-check text-green-600 mr-3 text-lg flex-shrink-0"></i>
+                    <span>全學年課程已開授第一學期，而第二學期人數不足者。</span>
+                </div>
+                <div class="flex items-center p-4 bg-gray-50 rounded-2xl border border-gray-200/60 text-gray-700 shadow-sm transition-transform hover:scale-[1.01]">
+                    <i class="fa-regular fa-square-check text-green-600 mr-3 text-lg flex-shrink-0"></i>
+                    <span>全英語授課學程（每位教師每學期以一門為限）。</span>
+                </div>
+                <div class="flex items-center p-4 bg-gray-50 rounded-2xl border border-gray-200/60 text-gray-700 shadow-sm transition-transform hover:scale-[1.01]">
+                    <i class="fa-regular fa-square-check text-green-600 mr-3 text-lg flex-shrink-0"></i>
+                    <span>運動代表隊、身心障礙學生修習之特定體育或英文課程。</span>
+                </div>
+                <div class="flex items-center p-4 bg-gray-50 rounded-2xl border border-gray-200/60 text-gray-700 shadow-sm transition-transform hover:scale-[1.01]">
+                    <i class="fa-regular fa-square-check text-green-600 mr-3 text-lg flex-shrink-0"></i>
+                    <span>配合教育部 TAICA 開設之衛星課程。</span>
+                </div>
+                <div class="flex items-center p-4 bg-gray-50 rounded-2xl border border-gray-200/60 text-gray-700 shadow-sm transition-transform hover:scale-[1.01]">
+                    <i class="fa-regular fa-square-check text-green-600 mr-3 text-lg flex-shrink-0"></i>
+                    <span>各系（學位學程、所）之必修課程。</span>
+                </div>
+            </div>
+        </div>
+	
+
+		<div id="page9" class="tab-content bg-white rounded-2xl p-8 md:p-10 shadow-sm border border-gray-100">
+            <div class="border-b-2 border-ntpuBlue pb-5 mb-8">
+                <span class="text-xs font-bold text-ntpuBlue tracking-widest uppercase block mb-1">跨校比較</span>
+                <h2 class="text-2xl font-black text-ntpuDark flex items-center tracking-wide">學士班必修與學分結構比較 (經濟系)</h2>
+            </div>
+            
+            <div class="bg-blue-50/50 p-4 rounded-xl mb-6 flex items-start border border-blue-100">
+                <i class="fa-solid fa-circle-info text-ntpuBlue mt-1 mr-3 flex-shrink-0"></i>
+                <p class="text-sm text-gray-700 leading-relaxed">本表以 115 學年度各校公開之學士班最新課綱為比較基準，表中課程名稱為簡化版本。</p>
+            </div>
+
+            <div class="border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+                <table class="w-full text-sm sm:text-base divide-y divide-gray-200 table-fixed">
+                    <thead class="bg-ntpuBlue text-white font-bold tracking-wider">
+                        <tr>
+                            <th class="px-3 sm:px-4 py-4 text-left w-[22%]">比較項目</th>
+                            <th class="px-3 sm:px-4 py-4 text-left w-[26%] border-l border-blue-700/50">
+				<a href="https://econ.ntu.edu.tw/archives/6428" target="_blank" class="hover:text-ntpuGold underline decoration-white/60 hover:decoration-ntpuGold transition-colors flex items-center">
+                                    國立臺灣大學<i class="fa-solid fa-external-link-alt ml-1.5 text-xs"></i>
+                                </a>
+			    </th>
+			    <th class="px-3 sm:px-4 py-4 text-left w-[26%] border-l border-blue-700/50">
+                            <a href="https://econo.nccu.edu.tw/PageDoc/Detail?fid=13191&id=30754" target="_blank" class="hover:text-ntpuGold underline decoration-white/60 hover:decoration-ntpuGold transition-colors flex items-center">
+                                    國立政治大學<i class="fa-solid fa-external-link-alt ml-1.5 text-xs"></i>
+                                </a>
+                            </th>
+                            <th class="px-4 sm:px-5 py-4 text-left w-[26%] border-l border-blue-700/50">
+                                <a href="https://econ.ntpu.edu.tw/p/412-1001-119.php?Lang=zh-tw" target="_blank" class="hover:text-ntpuGold underline decoration-white/60 hover:decoration-ntpuGold transition-colors flex items-center">
+                                    國立臺北大學<i class="fa-solid fa-external-link-alt ml-1.5 text-xs"></i>
+                                </a>
+                            </th>
+			</tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200 text-gray-800 leading-relaxed bg-white">
+                        
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-5 py-4 font-bold bg-gray-50/80 text-ntpuBlue">畢業總學分</td>
+                            <td class="px-5 py-4 font-bold text-lg">128 學分</td>
+                            <td class="px-5 py-4 font-bold text-lg border-l border-gray-100">128 學分</td>
+                            <td class="px-5 py-4 font-bold text-lg border-l border-gray-100 text-ntpuBlue">133 學分</td>
+                        </tr>
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-5 py-4 font-bold bg-gray-50/80 text-gray-700">系定必修</td>
+                            <td class="px-5 py-4">37 學分</td>
+                            <td class="px-5 py-4 border-l border-gray-100">30 學分</td>
+                            <td class="px-5 py-4 border-l border-gray-100 font-bold text-red-700 bg-red-50/30">59 學分</td>
+                        </tr>
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-5 py-4 font-bold bg-gray-50/80 text-gray-700">系選修</td>
+                            <td class="px-5 py-4">30 學分</td>
+                            <td class="px-5 py-4 border-l border-gray-100">21 學分<br><span class="text-xs text-gray-500">群修課程42學分<br>至少選21學分</span></td>
+                            <td class="px-5 py-4 border-l border-gray-100">30 學分</td>
+                        </tr>
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-5 py-4 font-bold bg-gray-50/80 text-gray-700">其他選修</td>
+                            <td class="px-5 py-4">34 學分</td>
+                            <td class="px-5 py-4 border-l border-gray-100">45 學分</td>
+                            <td class="px-5 py-4 border-l border-gray-100">20 學分<br><span class="text-xs text-gray-500">共同選修及外系</span></td>
+                        </tr>
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-5 py-4 font-bold bg-gray-50/80 text-gray-700">校定共同必修</td>
+                            <td class="px-5 py-4">27 學分</td>
+                            <td class="px-5 py-4 border-l border-gray-100">32 學分</td>
+                            <td class="px-5 py-4 border-l border-gray-100">24 學分</td>
+                        </tr>
+
+                        <tr class="bg-gray-100/50">
+                            <td colspan="4" class="px-5 py-2.5 font-bold text-sm text-gray-500 uppercase tracking-widest text-center">各年級必修課程比較</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-5 py-4 font-bold bg-gray-50/80 text-gray-700">大一必修</td>
+                            <td class="px-5 py-4">
+                                <ul class="space-y-1.5 text-sm">
+                                    <li>• 經濟學原理 (8)</li>
+                                    <li>• 微積分1.2.3.4<br>(各2學分，共8學分)</li>
+                                </ul>
+                            </td>
+                            <td class="px-5 py-4 border-l border-gray-100">
+                                <ul class="space-y-1.5 text-sm">
+                                    <li>• 經濟學 (6)</li>
+                                    <li>• 微積分 (6)</li>
+                                </ul>
+                            </td>
+                            <td class="px-5 py-4 border-l border-gray-100">
+                                <ul class="space-y-1.5 text-sm">
+                                    <li>• 經濟學原理 (8)</li>
+                                    <li>• 微積分 (6)</li>
+                                    <li class="space-y-1.5 text-ntpuBlue font-semibold">• 會計學 (6)</li>
+                                    <li class="space-y-1.5 text-ntpuBlue font-semibold">• 資料科學程式設計(2)</li>
+                                </ul>
+                            </td>
+                        </tr>
+
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-5 py-4 font-bold bg-gray-50/80 text-gray-700">大二必修</td>
+                            <td class="px-5 py-4">
+                                <ul class="space-y-1.5 text-sm">
+                                    <li>• 個體經濟學 (6)</li>
+                                    <li>• 總體經濟學 (6)</li>
+                                    <li>• 統計與計量經濟學(6)</li>
+                                </ul>
+                            </td>
+                            <td class="px-5 py-4 border-l border-gray-100">
+                                <ul class="space-y-1.5 text-sm">
+                                    <li>• 個體經濟學 (6)</li>
+                                    <li>• 總體經濟學 (6)</li>
+                                    <li>• 統計學 (6)</li>
+                                </ul>
+                            </td>
+                            <td class="px-5 py-4 border-l border-gray-100">
+                                <ul class="space-y-1.5 text-sm">
+                                    <li>• 個體經濟學 (6)</li>
+                                    <li>• 總體經濟學 (6)</li>
+                                    <li>• 統計學 (6)</li>
+                                </ul>
+                            </td>
+                        </tr>
+
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-5 py-4 font-bold bg-gray-50/80 text-gray-700">大三必修</td>
+                            <td class="px-5 py-4 text-gray-400 italic text-sm">無必修<br>(改為系選修)</td>
+                            <td class="px-5 py-4 border-l border-gray-100 text-gray-400 italic text-sm">無必修<br>(改為群修課程)</td>
+                            <td class="px-5 py-4 border-l border-gray-100 font-semibold">
+                                <ul class="space-y-1 text-xs sm:text-sm text-ntpuBlue">
+                                    <li>• 公共經濟學 (4)</li>
+                                    <li>• 國際經濟學 (4)</li>
+                                    <li>• 貨幣銀行學 (4)</li>
+                                    <li>• 經濟思想史 (4)</li>
+                                </ul>
+                            </td>
+                        </tr>
+
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-5 py-4 font-bold bg-gray-50/80 text-gray-700">大四 / 不限年級</td>
+                            <td class="px-5 py-4">
+                                <ul class="space-y-1.5 text-sm">
+                                    <li>• 服務學習甲／乙 </li>
+                                </ul>
+                            </td>
+                            <td class="px-5 py-4 border-l border-gray-100 text-gray-400 italic text-sm">無</td>
+                            <td class="px-5 py-4 border-l border-gray-100">
+                                <ul class="space-y-1.5 text-sm">
+                                    <li class="space-y-1.5 text-sm text-ntpublue">• 商事法 (3) <span class="text-xs text-gray-500">(大四)</span></li>
+                                </ul>
+                            </td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+
+
+
+	<div id="page10" class="tab-content max-w-5xl mx-auto px-4 py-8">
+    
+    <div class="text-center mb-10">
+        <h2 class="text-2xl md:text-3xl font-black text-ntpuDark mb-3 tracking-wide">
+            相關法規與規章下載
+        </h2>
+        <div class="w-80 h-1 bg-ntpuGold mx-auto rounded-full mb-4"></div>
+        <p class="text-gray-600 text-sm md:text-base leading-relaxed">
+            點擊右方「下載」按鈕即可開啟或下載 PDF 檔案。
+        </p>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-lg border border-gray-200/80 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-ntpuBlue text-white text-sm md:text-base font-semibold tracking-wider">
+                        <th class="py-5 px-8">法規名稱</th>
+                        <th class="py-5 px-6 w-32 text-center">檔案格式</th>
+                        <th class="py-5 px-6 w-40 text-center">下載與檢視</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 text-sm md:text-base text-gray-700 leading-relaxed">
+                    
+                    <tr class="hover:bg-ntpuLightBg transition-colors duration-150">
+                        <td class="py-6 px-8 font-medium text-ntpuDark">
+                            <span class="inline-block font-bold text-base md:text-lg text-gray-800">
+                                《國立臺北大學教師授課時數及超支鐘點費核計辦法》
+                            </span>
+                        </td>
+                        <td class="py-6 px-6 text-center">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-600 border border-red-200">
+                                <i class="fa-solid fa-file-pdf mr-1.5"></i>PDF
+                            </span>
+                        </td>
+                        <td class="py-6 px-6 text-center">
+                            <a href="https://cms-carrier.ntpu.edu.tw/uploads/115_5_8db5d62b61.pdf" 
+                               target="_blank" 
+                               rel="noopener noreferrer"
+                               class="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-ntpuBlue text-white font-medium text-sm shadow-sm hover:bg-blue-800 hover:shadow transition-all duration-200 group">
+                                <span>下載</span>
+                                <i class="fa-solid fa-arrow-up-right-from-square ml-2 text-xs opacity-70 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform"></i>
+                            </a>
+                        </td>
+                    </tr>
+
+                    <tr class="hover:bg-ntpuLightBg transition-colors duration-150">
+                        <td class="py-6 px-8 font-medium text-ntpuDark">
+                            <span class="inline-block font-bold text-base md:text-lg text-gray-800">
+                                《國立臺北大學課程開授基本原則》
+                            </span>
+                        </td>
+                        <td class="py-6 px-6 text-center">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-600 border border-red-200">
+                                <i class="fa-solid fa-file-pdf mr-1.5"></i>PDF
+                            </span>
+                        </td>
+                        <td class="py-6 px-6 text-center">
+                            <a href="https://cms-carrier.ntpu.edu.tw/uploads/115_3_4a6a0be400.pdf" 
+                               target="_blank" 
+                               rel="noopener noreferrer"
+                               class="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-ntpuBlue text-white font-medium text-sm shadow-sm hover:bg-blue-800 hover:shadow transition-all duration-200 group">
+                                <span>下載</span>
+                                <i class="fa-solid fa-arrow-up-right-from-square ml-2 text-xs opacity-70 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform"></i>
+                            </a>
+                        </td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="mt-6 flex items-center justify-center text-xs md:text-sm text-gray-500 bg-gray-50 py-3 px-4 rounded-xl border border-gray-200/60 max-w-2xl mx-auto">
+        <i class="fa-solid fa-circle-info text-ntpuBlue mr-2 text-base"></i> 
+    </div>
+
+</div>
+
+    </main>
+
+	<div id="page11" class="tab-content max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+
+    <div class="text-center mb-8">
+        <span class="text-xs font-bold text-ntpuBlue tracking-widest uppercase block mb-1">教師授課分析</span>
+        <h2 class="text-2xl md:text-3xl font-black text-ntpuDark mb-3 tracking-wide">教師授課分析</h2>
+        <div class="w-80 h-1 bg-ntpuGold mx-auto rounded-full mb-4"></div>
+    </div>
+
+    <!-- 子頁籤 -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-2 mb-6">
+        <div class="grid grid-cols-3 gap-2">
+            <button type="button" onclick="switchAnalysisTab('school')"
+                    class="analysis-subtab active px-4 py-3 rounded-xl font-bold text-sm md:text-base transition-colors"
+                    data-analysis-tab="school">
+                全校比較
+            </button>
+            <button type="button" onclick="switchAnalysisTab('department')"
+                    class="analysis-subtab px-4 py-3 rounded-xl font-bold text-sm md:text-base transition-colors"
+                    data-analysis-tab="department">
+                各系所分析
+            </button>
+            <button type="button" onclick="switchAnalysisTab('data')"
+                    class="analysis-subtab px-4 py-3 rounded-xl font-bold text-sm md:text-base transition-colors"
+                    data-analysis-tab="data">
+                檢視資料
+            </button>
+        </div>
+    </div>
+
+    <!-- A：全校比較 -->
+    <section id="analysis-school" class="analysis-subpage">
+        <!-- 篩選條件 -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-5 md:p-6 mb-6">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                <div>
+                    <h3 class="font-black text-lg text-ntpuDark">篩選條件</h3>
+                    <p class="text-xs text-gray-500 mt-1">年度、學院與系所可複選。</p>
+                </div>
+                <span id="analysis-filter-summary" class="text-xs font-semibold text-ntpuBlue bg-blue-50 px-3 py-1.5 rounded-full">載入中</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="text-sm font-bold text-gray-700">年度</label>
+                        <div class="space-x-1">
+                            <button type="button" class="text-xs text-ntpuBlue hover:underline" onclick="selectAllAnalysisFilters('year', true)">全選</button>
+                            <button type="button" class="text-xs text-gray-500 hover:underline" onclick="selectAllAnalysisFilters('year', false)">清除</button>
+                        </div>
+                    </div>
+                    <div id="analysis-year-options" class="max-h-32 overflow-y-auto border border-gray-200 rounded-xl p-2"></div>
+                </div>
+
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="text-sm font-bold text-gray-700">學院</label>
+                        <div class="space-x-1">
+                            <button type="button" class="text-xs text-ntpuBlue hover:underline" onclick="selectAllAnalysisFilters('college', true)">全選</button>
+                            <button type="button" class="text-xs text-gray-500 hover:underline" onclick="selectAllAnalysisFilters('college', false)">清除</button>
+                        </div>
+                    </div>
+                    <div id="analysis-college-options" class="max-h-32 overflow-y-auto border border-gray-200 rounded-xl p-2"></div>
+                </div>
+
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="text-sm font-bold text-gray-700">系所</label>
+                        <div class="space-x-1">
+                            <button type="button" class="text-xs text-ntpuBlue hover:underline" onclick="selectAllAnalysisFilters('department', true)">全選</button>
+                            <button type="button" class="text-xs text-gray-500 hover:underline" onclick="selectAllAnalysisFilters('department', false)">清除</button>
+                        </div>
+                    </div>
+                    <div id="analysis-department-options" class="max-h-32 overflow-y-auto border border-gray-200 rounded-xl p-2"></div>
+                    <div id="analysis-department-count" class="text-xs text-gray-500 mt-1"></div>
+                </div>
+            </div>
+
+            <div class="mt-4 flex items-center gap-2 text-xs text-gray-500">
+                <i class="fa-solid fa-user-check text-ntpuBlue"></i>
+                <span>教師類別：專任（目前授課資料均為專任教師；未來可增加兼任教師）</span>
+            </div>
+        </div>
+
+        <!-- 左側設定、右側圖表 -->
+        <div class="grid grid-cols-1 xl:grid-cols-[320px_minmax(0,1fr)] gap-6 items-start">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-5 md:p-6 xl:sticky xl:top-28">
+                <h3 class="font-black text-lg text-ntpuDark mb-5">分析設定</h3>
+
+                <div class="space-y-4">
+                    <div>
+                        <label for="analysis-topic" class="block text-sm font-bold text-gray-700 mb-1.5">分析主題</label>
+                        <select id="analysis-topic" onchange="analysisTopicChanged()"
+                                class="w-full rounded-xl border-gray-300 focus:border-ntpuBlue focus:ring-ntpuBlue text-sm"></select>
+                    </div>
+
+                    <div>
+                        <label for="analysis-unit" class="block text-sm font-bold text-gray-700 mb-1.5">單位</label>
+                        <select id="analysis-unit" onchange="analysisUnitChanged()"
+                                class="w-full rounded-xl border-gray-300 focus:border-ntpuBlue focus:ring-ntpuBlue text-sm"></select>
+                    </div>
+
+                    <div>
+                        <label for="analysis-variable" class="block text-sm font-bold text-gray-700 mb-1.5">變數</label>
+                        <select id="analysis-variable" onchange="analysisVariableChanged()"
+                                class="w-full rounded-xl border-gray-300 focus:border-ntpuBlue focus:ring-ntpuBlue text-sm"></select>
+                    </div>
+
+                    <div>
+                        <label for="analysis-stat" class="block text-sm font-bold text-gray-700 mb-1.5">統計方式</label>
+                        <select id="analysis-stat" onchange="analysisStatChanged()"
+                                class="w-full rounded-xl border-gray-300 focus:border-ntpuBlue focus:ring-ntpuBlue text-sm">
+                        </select>
+                    </div>
+
+                    <div id="analysis-custom-box" class="hidden rounded-xl bg-gray-50 border border-gray-200 p-4 space-y-3">
+                        <div class="text-xs font-bold text-gray-600">自定義：分子 ÷ 分母</div>
+                        <div>
+                            <label for="analysis-custom-numerator" class="block text-xs font-semibold text-gray-600 mb-1">分子</label>
+                            <select id="analysis-custom-numerator" onchange="analysisCustomChanged()"
+                                    class="w-full rounded-lg border-gray-300 text-sm"></select>
+                        </div>
+                        <div>
+                            <label for="analysis-custom-denominator" class="block text-xs font-semibold text-gray-600 mb-1">分母</label>
+                            <select id="analysis-custom-denominator" onchange="analysisCustomChanged()"
+                                    class="w-full rounded-lg border-gray-300 text-sm"></select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="analysis-chart-type" class="block text-sm font-bold text-gray-700 mb-1.5">圖表類型</label>
+                        <select id="analysis-chart-type" onchange="analysisChartTypeChanged()"
+                                class="w-full rounded-xl border-gray-300 focus:border-ntpuBlue focus:ring-ntpuBlue text-sm">
+                            <option value="bar">直條圖</option>
+                            <option value="horizontalBar">橫條圖</option>
+                            <option value="line">折線圖</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="analysis-axis" class="block text-sm font-bold text-gray-700 mb-1.5">類別軸</label>
+                        <select id="analysis-axis" onchange="analysisAxisChanged()"
+                                class="w-full rounded-xl border-gray-300 focus:border-ntpuBlue focus:ring-ntpuBlue text-sm">
+                            <option value="department">系所</option>
+                            <option value="year">年度</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-5 md:p-6">
+                <div class="flex flex-wrap justify-between items-start gap-3 mb-4">
+                    <div>
+                        <h3 id="analysis-chart-title" class="font-black text-lg text-ntpuDark">資料載入中</h3>
+                        <p id="analysis-chart-description" class="text-xs text-gray-500 mt-1"></p>
+                    </div>
+                    <button type="button" onclick="downloadAnalysisCSV()"
+                            class="inline-flex items-center px-4 py-2 rounded-xl bg-ntpuBlue text-white text-sm font-semibold hover:bg-blue-800 transition-colors">
+                        <i class="fa-solid fa-download mr-2"></i>下載目前資料
+                    </button>
+                </div>
+
+                <div id="analysis-chart-wrapper" class="relative h-[520px]">
+                    <canvas id="analysis-chart"></canvas>
+                    <div id="analysis-chart-empty" class="hidden absolute inset-0 items-center justify-center text-gray-400">
+                        沒有符合目前篩選條件的資料。
+                    </div>
+                </div>
+
+                <p id="analysis-load-status" class="mt-4 text-sm text-gray-500">資料載入中……</p>
+            </div>
+        </div>
+
+        <!-- A 資料表 -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 mt-6 overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
+                <h3 class="font-black text-lg text-ntpuDark">分析資料表</h3>
+                <span id="analysis-table-count" class="text-xs text-gray-500"></span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead id="analysis-table-head" class="bg-ntpuBlue text-white text-left"></thead>
+                    <tbody id="analysis-table-body" class="text-gray-700"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- B：各系所分析 -->
+    <section id="analysis-department" class="analysis-subpage hidden">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-5 md:p-6 mb-6">
+            <div class="flex flex-wrap items-end justify-between gap-4">
+                <div>
+                    <span class="text-xs font-bold text-ntpuBlue tracking-widest uppercase">Department Dashboard</span>
+                    <h3 class="text-2xl font-black text-ntpuDark mt-1">各系所分析</h3>
+                    <p class="text-sm text-gray-500 mt-1">選擇單一系所，查看授課、鐘點費、開課與畢業學分結構。</p>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                    <div>
+                        <label for="department-analysis-college" class="block text-xs font-bold text-gray-600 mb-1">學院</label>
+                        <select id="department-analysis-college" onchange="departmentCollegeChanged()"
+                                class="rounded-xl border-gray-300 text-sm min-w-[180px] focus:border-ntpuBlue focus:ring-ntpuBlue"></select>
+                    </div>
+                    <div>
+                        <label for="department-analysis-select" class="block text-xs font-bold text-gray-600 mb-1">系所</label>
+                        <select id="department-analysis-select" onchange="loadDepartmentAnalysis()"
+                                class="rounded-xl border-gray-300 text-sm min-w-[240px] focus:border-ntpuBlue focus:ring-ntpuBlue"></select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="department-dashboard" class="space-y-6">
+            <!-- 1. 系所基本概況 -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-5 md:p-6">
+                <div class="flex items-center justify-between mb-5">
+                    <div>
+                        <h3 class="font-black text-lg text-ntpuDark">1. 系所基本概況</h3>
+                        <p class="text-xs text-gray-500 mt-1">114 年度；平均授課時數以實際授課時數 ÷ 教師人數計算。</p>
+                    </div>
+                    <span id="department-overview-year" class="text-xs font-bold text-ntpuBlue bg-blue-50 px-3 py-1.5 rounded-full">114</span>
+                </div>
+                <div id="department-overview-cards" class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-3"></div>
+            </div>
+
+            <!-- 2. 歷年授課時數 -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-5 md:p-6">
+                <div class="mb-4">
+                    <h3 class="font-black text-lg text-ntpuDark">2. 歷年授課時數</h3>
+                    <p class="text-xs text-gray-500 mt-1">111–114 年度，三項指標以系所資料呈現。</p>
+                </div>
+                <div class="h-[420px]"><canvas id="department-teachtime-chart"></canvas></div>
+            </div>
+
+            <!-- 3. 教師鐘點費結構 -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-5 md:p-6">
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                    <div>
+                        <h3 class="font-black text-lg text-ntpuDark">3. 教師鐘點費結構</h3>
+                        <p class="text-xs text-gray-500 mt-1">111–114 年度；可切換總量或每位教師平均。</p>
+                    </div>
+                    <div class="inline-flex rounded-xl border border-gray-200 p-1 bg-gray-50">
+                        <button type="button" id="salary-mode-total" onclick="setDepartmentSalaryMode('total')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-ntpuBlue text-white">總量</button>
+                        <button type="button" id="salary-mode-average" onclick="setDepartmentSalaryMode('average')" class="px-3 py-1.5 rounded-lg text-xs font-bold text-gray-600">教師平均</button>
+                    </div>
+                </div>
+                <div class="h-[460px]"><canvas id="department-salary-chart"></canvas></div>
+            </div>
+
+            <!-- 4. 開課結構 -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-5 md:p-6">
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                    <div>
+                        <h3 class="font-black text-lg text-ntpuDark">4. 開課結構</h3>
+                        <p class="text-xs text-gray-500 mt-1">114 年度；不含大班、支援外系的獨立欄位，依資料集原始分類呈現。</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <select id="department-course-unit" onchange="updateDepartmentCourseCharts()"
+                                class="rounded-lg border-gray-300 text-xs focus:border-ntpuBlue focus:ring-ntpuBlue">
+                            <option value="學分">學分</option><option value="時數">時數</option><option value="堂數">堂數</option>
+                        </select>
+                        <select id="department-course-stat" onchange="updateDepartmentCourseCharts()"
+                                class="rounded-lg border-gray-300 text-xs focus:border-ntpuBlue focus:ring-ntpuBlue">
+                            <option value="sum">加總</option><option value="average">平均</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="h-[390px]"><canvas id="department-course-chart"></canvas></div>
+            </div>
+
+            <!-- 5. 大班授課 -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-5 md:p-6">
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                    <div>
+                        <h3 class="font-black text-lg text-ntpuDark">5. 大班授課</h3>
+                        <p class="text-xs text-gray-500 mt-1">114 年度；依必修、選修、通識、大一國文、基礎分類。</p>
+                    </div>
+                    <select id="department-large-unit" onchange="updateDepartmentLargeChart()"
+                            class="rounded-lg border-gray-300 text-xs focus:border-ntpuBlue focus:ring-ntpuBlue">
+                        <option value="學分">學分</option><option value="時數">時數</option><option value="堂數">堂數</option>
+                    </select>
+                </div>
+                <div class="h-[360px]"><canvas id="department-large-chart"></canvas></div>
+            </div>
+
+            <!-- 6. 支援外系 -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-5 md:p-6">
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                    <div>
+                        <h3 class="font-black text-lg text-ntpuDark">6. 支援外系</h3>
+                        <p class="text-xs text-gray-500 mt-1">114 年度；依課程類別呈現支援外系的學分、時數或堂數。</p>
+                    </div>
+                    <select id="department-support-unit" onchange="updateDepartmentSupportChart()"
+                            class="rounded-lg border-gray-300 text-xs focus:border-ntpuBlue focus:ring-ntpuBlue">
+                        <option value="學分">學分</option><option value="時數">時數</option><option value="堂數">堂數</option>
+                    </select>
+                </div>
+                <div class="h-[360px]"><canvas id="department-support-chart"></canvas></div>
+            </div>
+
+            <!-- 7. 學士班畢業學分 -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-5 md:p-6">
+                <div class="mb-4">
+                    <h3 class="font-black text-lg text-ntpuDark">7. 學士班畢業學分</h3>
+                    <p class="text-xs text-gray-500 mt-1">114 年度結構與 111–114 年度總學分趨勢。</p>
+                </div>
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="text-sm font-bold text-gray-700 mb-2">114 年度學分結構</h4>
+                        <div class="h-[390px]"><canvas id="department-graduate-overview-chart"></canvas></div>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-bold text-gray-700 mb-2">歷年總學分數</h4>
+                        <div class="h-[390px]"><canvas id="department-graduate-trend-chart"></canvas></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="department-analysis-status" class="text-sm text-gray-500 px-1"></div>
+        </div>
+    </section>
+
+    <!-- C：檢視資料 -->
+    <section id="analysis-data" class="analysis-subpage hidden">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-5 md:p-6 mb-6">
+            <div class="flex flex-wrap items-end justify-between gap-4 mb-5">
+                <div>
+                    <span class="text-xs font-bold text-ntpuBlue tracking-widest uppercase">Data Explorer</span>
+                    <h3 class="text-2xl font-black text-ntpuDark mt-1">檢視資料</h3>
+                    <p class="text-sm text-gray-500 mt-1">直接瀏覽 JSON 資料，可篩選、搜尋、排序、選擇欄位並下載目前結果。</p>
+                </div>
+                <button type="button" onclick="downloadDataExplorerCSV()"
+                        class="inline-flex items-center px-4 py-2 rounded-xl bg-ntpuBlue text-white text-sm font-semibold hover:bg-blue-800">
+                    <i class="fa-solid fa-download mr-2"></i>下載目前資料
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label for="data-explorer-dataset" class="block text-xs font-bold text-gray-600 mb-1.5">資料集</label>
+                    <select id="data-explorer-dataset" onchange="dataExplorerDatasetChanged()"
+                            class="w-full rounded-xl border-gray-300 text-sm focus:border-ntpuBlue focus:ring-ntpuBlue">
+                        <option value="teachtime">授課時數</option>
+                        <option value="salary">教師鐘點費結構</option>
+                        <option value="graduate">學士班畢業學分</option>
+                        <option value="course">114 開課現況</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="data-explorer-year" class="block text-xs font-bold text-gray-600 mb-1.5">年度</label>
+                    <select id="data-explorer-year" onchange="updateDataExplorer()"
+                            class="w-full rounded-xl border-gray-300 text-sm"></select>
+                </div>
+                <div>
+                    <label for="data-explorer-college" class="block text-xs font-bold text-gray-600 mb-1.5">學院</label>
+                    <select id="data-explorer-college" onchange="dataExplorerCollegeChanged()"
+                            class="w-full rounded-xl border-gray-300 text-sm"></select>
+                </div>
+                <div>
+                    <label for="data-explorer-department" class="block text-xs font-bold text-gray-600 mb-1.5">系所</label>
+                    <select id="data-explorer-department" onchange="updateDataExplorer()"
+                            class="w-full rounded-xl border-gray-300 text-sm"></select>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <label for="data-explorer-search" class="block text-xs font-bold text-gray-600 mb-1.5">搜尋系所</label>
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                    <input id="data-explorer-search" type="search" oninput="updateDataExplorer()"
+                           placeholder="輸入系所名稱關鍵字"
+                           class="w-full rounded-xl border-gray-300 pl-9 text-sm focus:border-ntpuBlue focus:ring-ntpuBlue">
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-5 md:p-6 mb-6">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+                <div>
+                    <h3 class="font-black text-lg text-ntpuDark">顯示欄位</h3>
+                    <p class="text-xs text-gray-500 mt-1">僅控制畫面顯示，不會修改原始 JSON。</p>
+                </div>
+                <div class="space-x-2">
+                    <button type="button" onclick="selectAllDataColumns(true)" class="text-xs text-ntpuBlue hover:underline">全選</button>
+                    <button type="button" onclick="selectAllDataColumns(false)" class="text-xs text-gray-500 hover:underline">清除</button>
+                </div>
+            </div>
+            <div id="data-explorer-columns" class="max-h-48 overflow-y-auto border border-gray-200 rounded-xl p-2 grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-1"></div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
+                <h3 class="font-black text-lg text-ntpuDark">資料表</h3>
+                <span id="data-explorer-count" class="text-xs text-gray-500"></span>
+            </div>
+            <div class="overflow-auto max-h-[650px]">
+                <table class="min-w-full text-xs md:text-sm whitespace-nowrap">
+                    <thead id="data-explorer-head" class="bg-ntpuBlue text-white sticky top-0 z-10"></thead>
+                    <tbody id="data-explorer-body" class="text-gray-700"></tbody>
+                </table>
+            </div>
+        </div>
+        <p id="data-explorer-status" class="mt-3 text-xs text-gray-500"></p>
+    </section>
+
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+function switchAnalysisTab(tab) {
+    document.querySelectorAll('.analysis-subpage').forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll('.analysis-subtab').forEach(el => {
+        el.classList.remove('bg-ntpuBlue', 'text-white');
+        el.classList.add('text-gray-600', 'hover:bg-gray-100');
+    });
+
+    const target = document.getElementById(`analysis-${tab}`);
+    const button = document.querySelector(`[data-analysis-tab="${tab}"]`);
+
+    if (target) target.classList.remove('hidden');
+    if (button) {
+        button.classList.remove('text-gray-600', 'hover:bg-gray-100');
+        button.classList.add('bg-ntpuBlue', 'text-white');
+    }
+}
+
+switchAnalysisTab('school');
+</script>
+
+    <footer class="bg-ntpuDark text-gray-400 text-xs py-8 border-t border-gray-800 text-center mt-auto leading-relaxed">
+        <p class="tracking-wide">法源依據：《教師授課時數及超支鐘點費核計辦法》、《課程開授基本原則》</p>
+        <p class="mt-4 text-gray-600 text-[11px]">&copy; 2026 National Taipei University. All Rights Reserved.</p>
+    </footer>
+
+    <script>
+        function switchTab(tabId) {
+            // 隱藏所有網頁內容
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.remove('active'));
+            
+            // 顯示被點擊的獨立子網頁
+            const activeContent = document.getElementById(tabId);
+            if(activeContent) {
+                activeContent.classList.add('active');
+                // 切換後自動平滑滾動回頂部
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+    </script>
+	<script src="./js/analysis.js"></script>
+</body>
+</html>
