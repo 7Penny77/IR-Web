@@ -143,6 +143,16 @@ const TOPICS = {
     }
 };
 
+
+function updateSiteHeaderHeight() {
+    const header = document.querySelector('header');
+    if (!header) return;
+    document.documentElement.style.setProperty(
+        '--site-header-height',
+        `${header.getBoundingClientRect().height}px`
+    );
+}
+
 function analysisUnique(values) {
     return [...new Set(values.filter(v => v !== undefined && v !== null && v !== ''))];
 }
@@ -883,6 +893,9 @@ function escapeHtml(value) {
 }
 
 function initTeacherAnalysis() {
+    updateSiteHeaderHeight();
+    window.addEventListener('resize', updateSiteHeaderHeight);
+
     if (!document.getElementById('analysis-school')) return;
     loadAnalysisData();
 }
@@ -910,8 +923,8 @@ const DEPARTMENT_COURSE_CATEGORIES = [
 ];
 
 const DEPARTMENT_SALARY_FIELDS = [
-    '正課','實習','大班','遠距','外語','進修學士班折抵',
-    '行政減授','新進教師減授及返還','計畫類','指導研究生'
+    '正課','實習','大班','遠距','外語','行政減授',
+    '進修學士班折抵','新進教師減授及返還','計畫類','指導研究生'
 ];
 
 function departmentRowDepartment(row) {
@@ -1028,8 +1041,9 @@ function departmentMakeLineChart(canvasId, key, labels, datasets, suffix=' 小�
     });
 }
 
-function departmentHatchPattern(color, background = 'rgba(255,255,255,0.08)') {
-    const size = 12;
+function departmentHatchPattern(color, background = 'rgba(255,255,255,0.06)') {
+    // 細而密的斜線
+    const size = 7;
     const patternCanvas = document.createElement('canvas');
     patternCanvas.width = size;
     patternCanvas.height = size;
@@ -1039,13 +1053,11 @@ function departmentHatchPattern(color, background = 'rgba(255,255,255,0.08)') {
     ctx.fillRect(0, 0, size, size);
 
     ctx.strokeStyle = color;
-    ctx.globalAlpha = 0.75;
-    ctx.lineWidth = 2;
+    ctx.globalAlpha = 0.55;
+    ctx.lineWidth = 0.8;
     ctx.beginPath();
-    ctx.moveTo(-2, size - 2);
-    ctx.lineTo(size - 2, -2);
-    ctx.moveTo(4, size + 2);
-    ctx.lineTo(size + 2, 4);
+    ctx.moveTo(-1, size - 1);
+    ctx.lineTo(size - 1, -1);
     ctx.stroke();
 
     return ctx.createPattern(patternCanvas, 'repeat');
@@ -1056,19 +1068,6 @@ function departmentMakeStackedChart(canvasId, key, labels, datasets, average=fal
     if (!canvas || !window.Chart) return;
     departmentChartDestroy(key);
 
-    const palette = [
-        'rgba(54, 162, 235, 0.65)',
-        'rgba(255, 99, 132, 0.65)',
-        'rgba(255, 206, 86, 0.65)',
-        'rgba(75, 192, 192, 0.65)',
-        'rgba(153, 102, 255, 0.65)',
-        'rgba(255, 159, 64, 0.65)',
-        'rgba(201, 203, 207, 0.65)',
-        'rgba(54, 162, 235, 0.35)',
-        'rgba(255, 99, 132, 0.35)',
-        'rgba(255, 206, 86, 0.35)'
-    ];
-
     const hatchFields = new Set([
         '行政減授',
         '新進教師減授及返還',
@@ -1076,15 +1075,15 @@ function departmentMakeStackedChart(canvasId, key, labels, datasets, average=fal
         '指導研究生'
     ]);
 
-    const chartDatasets = datasets.map((d, i) => {
-        const baseColor = palette[i % palette.length];
-        const strokeColor = baseColor.replace(/0\.\d+\)/, '1)');
+    const chartDatasets = datasets.map(d => {
+        const background = d.backgroundColor || 'rgba(54, 162, 235, 0.65)';
+        const border = d.borderColor || background;
         return {
             ...d,
             backgroundColor: hatchFields.has(d.label)
-                ? departmentHatchPattern(strokeColor)
-                : baseColor,
-            borderColor: strokeColor,
+                ? departmentHatchPattern(border)
+                : background,
+            borderColor: border,
             borderWidth: 1
         };
     });
