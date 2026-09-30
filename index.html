@@ -40,6 +40,14 @@
             font-weight: 800;
             line-height: 1.35;
         }
+
+        /* B：各系所分析的學院／系所篩選區固定在網站標題列下方。
+           top 由 analysis.js 依 header 實際高度動態設定。 */
+        .department-analysis-filter {
+            position: sticky;
+            top: var(--analysis-header-height, 0px);
+            z-index: 40;
+        }
     </style>
 </head>
 <body class="bg-ntpuLightBg text-ntpuDark font-sans antialiased flex flex-col min-h-screen">
@@ -1237,7 +1245,7 @@
 
     <!-- B：各系所分析 -->
     <section id="analysis-department" class="analysis-subpage hidden">
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-5 md:p-6 mb-6">
+        <div id="department-analysis-filter" class="department-analysis-filter bg-white rounded-2xl shadow-sm border border-gray-200/80 p-5 md:p-6 mb-6">
             <div class="flex flex-wrap items-end justify-between gap-4">
                 <div>
                     <span class="text-xs font-bold text-ntpuBlue tracking-widest uppercase">Department Dashboard</span>
