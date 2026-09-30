@@ -910,8 +910,8 @@ const DEPARTMENT_COURSE_CATEGORIES = [
 ];
 
 const DEPARTMENT_SALARY_FIELDS = [
-    '正課','實習','大班','遠距','外語','行政減授',
-    '進修學士班折抵','新進教師減授及返還','計畫類','指導研究生'
+    '正課','實習','大班','遠距','外語','進修學士班折抵',
+    '行政減授','新進教師減授及返還','計畫類','指導研究生'
 ];
 
 function departmentRowDepartment(row) {
@@ -1028,19 +1028,84 @@ function departmentMakeLineChart(canvasId, key, labels, datasets, suffix=' 小�
     });
 }
 
+function departmentHatchPattern(color, background = 'rgba(255,255,255,0.08)') {
+    const size = 12;
+    const patternCanvas = document.createElement('canvas');
+    patternCanvas.width = size;
+    patternCanvas.height = size;
+    const ctx = patternCanvas.getContext('2d');
+
+    ctx.fillStyle = background;
+    ctx.fillRect(0, 0, size, size);
+
+    ctx.strokeStyle = color;
+    ctx.globalAlpha = 0.75;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(-2, size - 2);
+    ctx.lineTo(size - 2, -2);
+    ctx.moveTo(4, size + 2);
+    ctx.lineTo(size + 2, 4);
+    ctx.stroke();
+
+    return ctx.createPattern(patternCanvas, 'repeat');
+}
+
 function departmentMakeStackedChart(canvasId, key, labels, datasets, average=false) {
     const canvas = document.getElementById(canvasId);
     if (!canvas || !window.Chart) return;
     departmentChartDestroy(key);
 
+    const palette = [
+        'rgba(54, 162, 235, 0.65)',
+        'rgba(255, 99, 132, 0.65)',
+        'rgba(255, 206, 86, 0.65)',
+        'rgba(75, 192, 192, 0.65)',
+        'rgba(153, 102, 255, 0.65)',
+        'rgba(255, 159, 64, 0.65)',
+        'rgba(201, 203, 207, 0.65)',
+        'rgba(54, 162, 235, 0.35)',
+        'rgba(255, 99, 132, 0.35)',
+        'rgba(255, 206, 86, 0.35)'
+    ];
+
+    const hatchFields = new Set([
+        '行政減授',
+        '新進教師減授及返還',
+        '計畫類',
+        '指導研究生'
+    ]);
+
+    const chartDatasets = datasets.map((d, i) => {
+        const baseColor = palette[i % palette.length];
+        const strokeColor = baseColor.replace(/0\.\d+\)/, '1)');
+        return {
+            ...d,
+            backgroundColor: hatchFields.has(d.label)
+                ? departmentHatchPattern(strokeColor)
+                : baseColor,
+            borderColor: strokeColor,
+            borderWidth: 1
+        };
+    });
+
     departmentState.charts[key] = new Chart(canvas.getContext('2d'), {
         type:'bar',
-        data:{labels,datasets:datasets.map(d => ({...d,borderWidth:1}))},
+        data:{labels,datasets:chartDatasets},
         options:{
-            responsive:true, maintainAspectRatio:false,
+            responsive:true,
+            maintainAspectRatio:false,
+            interaction:{mode:'index', intersect:false},
             plugins:{
                 legend:{position:'bottom'},
-                tooltip:{callbacks:{label:ctx => `${ctx.dataset.label}: ${departmentFormat(ctx.parsed.y,' 小時')}`}}
+                tooltip:{
+                    mode:'index',
+                    intersect:false,
+                    callbacks:{
+                        title: items => items.length ? `${items[0].label} 年` : '',
+                        label:ctx => `${ctx.dataset.label}: ${departmentFormat(ctx.parsed.y,' 小時')}`
+                    }
+                }
             },
             scales:{
                 x:{stacked:true,title:{display:true,text:'年度'}},
