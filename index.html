@@ -29,6 +29,26 @@
             from { opacity: 0; transform: translateY(8px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        .analysis-setting-label {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.18rem 0.55rem;
+            border-radius: 0.55rem;
+            background: #e0f2fe;
+            color: #0369a1;
+            font-weight: 800;
+            line-height: 1.35;
+        }
+
+        .department-filter-sticky {
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            background: rgba(255,255,255,0.97);
+            backdrop-filter: blur(6px);
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+        }
+
     </style>
 </head>
 <body class="bg-ntpuLightBg text-ntpuDark font-sans antialiased flex flex-col min-h-screen">
@@ -1127,25 +1147,25 @@
 
                 <div class="space-y-4">
                     <div>
-                        <label for="analysis-topic" class="block text-sm font-bold text-gray-700 mb-1.5">分析主題</label>
+                        <label for="analysis-topic" class="block text-sm font-bold text-gray-700 mb-1.5"><span class="analysis-setting-label">分析主題</span></label>
                         <select id="analysis-topic" onchange="analysisTopicChanged()"
                                 class="w-full rounded-xl border-gray-300 focus:border-ntpuBlue focus:ring-ntpuBlue text-sm"></select>
                     </div>
 
                     <div>
-                        <label for="analysis-unit" class="block text-sm font-bold text-gray-700 mb-1.5">單位</label>
+                        <label for="analysis-unit" class="block text-sm font-bold text-gray-700 mb-1.5"><span class="analysis-setting-label">單位</span></label>
                         <select id="analysis-unit" onchange="analysisUnitChanged()"
                                 class="w-full rounded-xl border-gray-300 focus:border-ntpuBlue focus:ring-ntpuBlue text-sm"></select>
                     </div>
 
                     <div>
-                        <label for="analysis-variable" class="block text-sm font-bold text-gray-700 mb-1.5">變數</label>
+                        <label for="analysis-variable" class="block text-sm font-bold text-gray-700 mb-1.5"><span class="analysis-setting-label">變數</span></label>
                         <select id="analysis-variable" onchange="analysisVariableChanged()"
                                 class="w-full rounded-xl border-gray-300 focus:border-ntpuBlue focus:ring-ntpuBlue text-sm"></select>
                     </div>
 
                     <div>
-                        <label for="analysis-stat" class="block text-sm font-bold text-gray-700 mb-1.5">統計方式</label>
+                        <label for="analysis-stat" class="block text-sm font-bold text-gray-700 mb-1.5"><span class="analysis-setting-label">統計方式</span></label>
                         <select id="analysis-stat" onchange="analysisStatChanged()"
                                 class="w-full rounded-xl border-gray-300 focus:border-ntpuBlue focus:ring-ntpuBlue text-sm">
                         </select>
@@ -1166,7 +1186,7 @@
                     </div>
 
                     <div>
-                        <label for="analysis-chart-type" class="block text-sm font-bold text-gray-700 mb-1.5">圖表類型</label>
+                        <label for="analysis-chart-type" class="block text-sm font-bold text-gray-700 mb-1.5"><span class="analysis-setting-label">圖表類型</span></label>
                         <select id="analysis-chart-type" onchange="analysisChartTypeChanged()"
                                 class="w-full rounded-xl border-gray-300 focus:border-ntpuBlue focus:ring-ntpuBlue text-sm">
                             <option value="bar">直條圖</option>
@@ -1176,7 +1196,7 @@
                     </div>
 
                     <div>
-                        <label for="analysis-axis" class="block text-sm font-bold text-gray-700 mb-1.5">類別軸</label>
+                        <label for="analysis-axis" class="block text-sm font-bold text-gray-700 mb-1.5"><span class="analysis-setting-label">類別軸</span></label>
                         <select id="analysis-axis" onchange="analysisAxisChanged()"
                                 class="w-full rounded-xl border-gray-300 focus:border-ntpuBlue focus:ring-ntpuBlue text-sm">
                             <option value="department">系所</option>
@@ -1226,7 +1246,7 @@
 
     <!-- B：各系所分析 -->
     <section id="analysis-department" class="analysis-subpage hidden">
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-5 md:p-6 mb-6">
+        <div class="department-filter-sticky rounded-2xl border border-gray-200/80 p-5 md:p-6 mb-6">
             <div class="flex flex-wrap items-end justify-between gap-4">
                 <div>
                     <span class="text-xs font-bold text-ntpuBlue tracking-widest uppercase">Department Dashboard</span>
