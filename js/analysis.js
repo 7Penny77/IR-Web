@@ -882,7 +882,34 @@ function escapeHtml(value) {
         .replace(/'/g, '&#039;');
 }
 
+/* =========================================================
+ * B 篩選區置頂：依網站標題列實際高度動態計算 sticky top
+ * ========================================================= */
+function updateAnalysisHeaderHeight() {
+    const header = document.querySelector('body > header');
+    if (!header) return;
+
+    const height = Math.ceil(header.getBoundingClientRect().height);
+    document.documentElement.style.setProperty('--analysis-header-height', `${height}px`);
+}
+
+function initAnalysisHeaderHeightObserver() {
+    const header = document.querySelector('body > header');
+    if (!header) return;
+
+    updateAnalysisHeaderHeight();
+
+    if ('ResizeObserver' in window) {
+        const observer = new ResizeObserver(updateAnalysisHeaderHeight);
+        observer.observe(header);
+    }
+
+    window.addEventListener('resize', updateAnalysisHeaderHeight, {passive:true});
+    window.addEventListener('orientationchange', updateAnalysisHeaderHeight, {passive:true});
+}
+
 function initTeacherAnalysis() {
+    initAnalysisHeaderHeightObserver();
     if (!document.getElementById('analysis-school')) return;
     loadAnalysisData();
 }
@@ -909,10 +936,18 @@ const DEPARTMENT_COURSE_CATEGORIES = [
     {label:'基礎', key:'基礎'}
 ];
 
+// 堆疊順序固定：正課 → 實習 → 大班 → 遠距 → 外語 →
+// 進修學士班折抵 → 行政減授 → 新進教師減授及返還 → 計畫類 → 指導研究生
 const DEPARTMENT_SALARY_FIELDS = [
-    '正課','實習','大班','遠距','外語','行政減授',
-    '進修學士班折抵','新進教師減授及返還','計畫類','指導研究生'
+    '正課', '實習', '大班', '遠距', '外語',
+    '進修學士班折抵', '行政減授', '新進教師減授及返還',
+    '計畫類', '指導研究生'
 ];
+
+// 需要以細斜線填滿的鐘點費項目。
+const DEPARTMENT_SALARY_HATCH_FIELDS = new Set([
+    '行政減授', '新進教師減授及返還', '計畫類', '指導研究生'
+]);
 
 function departmentRowDepartment(row) {
     return row.系所 || row.單位 || '';
@@ -1028,6 +1063,25 @@ function departmentMakeLineChart(canvasId, key, labels, datasets, suffix=' 小�
     });
 }
 
+function departmentCreateHatchPattern(chart, lineColor='rgba(55,65,81,0.55)') {
+    const patternCanvas = document.createElement('canvas');
+    patternCanvas.width = 8;
+    patternCanvas.height = 8;
+    const patternContext = patternCanvas.getContext('2d');
+
+    patternContext.clearRect(0, 0, 8, 8);
+    patternContext.strokeStyle = lineColor;
+    patternContext.lineWidth = 1;
+    patternContext.beginPath();
+    patternContext.moveTo(-2, 8);
+    patternContext.lineTo(8, -2);
+    patternContext.moveTo(2, 10);
+    patternContext.lineTo(10, 2);
+    patternContext.stroke();
+
+    return chart.ctx.createPattern(patternCanvas, 'repeat');
+}
+
 function departmentMakeStackedChart(canvasId, key, labels, datasets, average=false) {
     const canvas = document.getElementById(canvasId);
     if (!canvas || !window.Chart) return;
@@ -1035,7 +1089,20 @@ function departmentMakeStackedChart(canvasId, key, labels, datasets, average=fal
 
     departmentState.charts[key] = new Chart(canvas.getContext('2d'), {
         type:'bar',
-        data:{labels,datasets:datasets.map(d => ({...d,borderWidth:1}))},
+        data:{
+            labels,
+            datasets:datasets.map(d => {
+                const isHatch = DEPARTMENT_SALARY_HATCH_FIELDS.has(d.label);
+                return {
+                    ...d,
+                    borderWidth:1,
+                    borderColor:isHatch ? 'rgba(55,65,81,0.75)' : undefined,
+                    backgroundColor:isHatch
+                        ? (context => departmentCreateHatchPattern(context.chart))
+                        : undefined
+                };
+            })
+        },
         options:{
             responsive:true, maintainAspectRatio:false,
             plugins:{
