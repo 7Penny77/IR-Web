@@ -931,8 +931,8 @@ const DEPARTMENT_SALARY_HATCH_FIELDS = new Set([
 ]);
 
 const DEPARTMENT_SALARY_COLORS = [
-    '#2B5C8F', '#F4A261', '#2A9D8F', '#E76F51', '#8A79AF',
-    '#6C757D', '#1D3557', '#E9C46A', '#8AB17D', '#FFD1DC'
+    '#2B5C8F', '#F4A261', '#E76F51', '#2A9D8F', '#8A79AF',
+    '#6C757D', '#1D3557', '#FF4500', '#006400', '#F0768B'
 ];
 
 function departmentCreateHatchPattern(color) {
