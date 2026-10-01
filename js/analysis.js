@@ -1079,19 +1079,29 @@ function departmentMakeStackedChart(canvasId, key, labels, datasets, average=fal
         data:{labels,datasets:datasets.map(d => ({...d,borderWidth:1}))},
         options:{
             responsive:true, maintainAspectRatio:false,
+            interaction:{mode:'index', intersect:false},
             plugins:{
                 legend:{
                     position:'bottom',
                     labels:{
-                        // 圖表本體可使用斜線填滿，但圖例一律保留原本的實心色塊。
-                        generateLabels: chart => Chart.defaults.plugins.legend.labels.generateLabels(chart).map(item => {
-                            const dataset = chart.data.datasets[item.datasetIndex];
-                            const solidColor = dataset?.legendColor || dataset?.borderColor || dataset?.backgroundColor;
-                            return { ...item, fillStyle: solidColor, strokeStyle: solidColor };
-                        })
+                        generateLabels: chart => chart.data.datasets.map((dataset, index) => ({
+                            text: dataset.label,
+                            datasetIndex: index,
+                            hidden: !chart.isDatasetVisible(index),
+                            fillStyle: DEPARTMENT_SALARY_COLORS[index] || '#64748b',
+                            strokeStyle: DEPARTMENT_SALARY_COLORS[index] || '#64748b',
+                            lineWidth: 1,
+                            fontColor: '#374151'
+                        }))
                     }
                 },
-                tooltip:{callbacks:{label:ctx => `${ctx.dataset.label}: ${departmentFormat(ctx.parsed.y,' 小時')}`}}
+                tooltip:{
+                    mode:'index',
+                    intersect:false,
+                    callbacks:{
+                        label:ctx => `${ctx.dataset.label}: ${departmentFormat(ctx.parsed.y,' 小時')}`
+                    }
+                }
             },
             scales:{
                 x:{stacked:true,title:{display:true,text:'年度'}},
@@ -1245,8 +1255,6 @@ function renderDepartmentSalary() {
             backgroundColor: DEPARTMENT_SALARY_HATCH_FIELDS.has(field)
                 ? departmentCreateHatchPattern(color)
                 : color,
-            // 圖例固定使用原本的實心色；只有四個指定項目的圖表區塊改為斜線。
-            legendColor: color,
             borderColor: color,
             borderWidth: 1
         };
