@@ -5,7 +5,7 @@
  * - 提交介面預留 Google Apps Script Web App endpoint
  */
 
-const EVALUATION_GOOGLE_APPS_SCRIPT_URL = '';
+const EVALUATION_GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxIhadAIW99JFxV4J_DO2FKfsbVUNrF53dRNZTcvhLUlmNdlblsnjfQWOPSSPi9mepW/exec';
 
 const EVALUATION_DEFAULT_REQUIRED_COURSES = {
     '經濟學系': {
