@@ -123,6 +123,14 @@
     </a>
 </div>
 
+			<div class="h-full flex items-center cursor-pointer">
+    <a href="javascript:void(0)"
+       onclick="switchTab('page12')"
+       class="hover:text-ntpuGold transition-colors py-2 flex items-center tracking-wide font-medium">
+        <i class="fa-solid fa-calculator mr-1.5 text-sm"></i>各系所減授評估
+    </a>
+</div>
+
                 </nav>
             </div>
         </div>
@@ -1468,6 +1476,156 @@
 
 </div>
 
+<!-- page12：各系所減授評估 -->
+<div id="page12" class="tab-content max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+    <div class="text-center mb-8">
+        <span class="text-xs font-bold text-ntpuBlue tracking-widest uppercase block mb-1">各系所減授評估</span>
+        <h2 class="text-2xl md:text-3xl font-black text-ntpuDark mb-3 tracking-wide">各系所減授評估</h2>
+        <div class="w-80 h-1 bg-ntpuGold mx-auto rounded-full mb-4"></div>
+        <p class="text-sm text-gray-500 max-w-3xl mx-auto leading-relaxed">
+            請輸入系所教師人數與開課需求，選擇減授方案後，即時比較每學年每週的教學供給與開課需求。
+        </p>
+    </div>
+
+    <!-- 1. 基本資料 -->
+    <section class="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-5 md:p-6 mb-6">
+        <div class="mb-5">
+            <h3 class="text-xl font-black text-ntpuDark">1. 基本資料</h3>
+            <p class="text-xs text-gray-500 mt-1">選擇學院、系所與學年度；系所資料會依學院連動。</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+                <label for="evaluation-academic-year" class="block text-sm font-bold text-gray-700 mb-1.5">學年度</label>
+                <select id="evaluation-academic-year" class="w-full rounded-xl border-gray-300 text-sm focus:border-ntpuBlue focus:ring-ntpuBlue">
+                    <option value="115">115學年度</option>
+                    <option value="114">114學年度</option>
+                    <option value="113">113學年度</option>
+                    <option value="112">112學年度</option>
+                    <option value="111">111學年度</option>
+                </select>
+            </div>
+            <div>
+                <label for="evaluation-college" class="block text-sm font-bold text-gray-700 mb-1.5">學院</label>
+                <select id="evaluation-college" onchange="evaluationCollegeChanged()" class="w-full rounded-xl border-gray-300 text-sm focus:border-ntpuBlue focus:ring-ntpuBlue">
+                    <option value="">資料載入中……</option>
+                </select>
+            </div>
+            <div>
+                <label for="evaluation-department" class="block text-sm font-bold text-gray-700 mb-1.5">系所</label>
+                <select id="evaluation-department" onchange="evaluationDepartmentChanged(true)" class="w-full rounded-xl border-gray-300 text-sm focus:border-ntpuBlue focus:ring-ntpuBlue">
+                    <option value="">資料載入中……</option>
+                </select>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2. 授課教師人數 -->
+    <section class="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-5 md:p-6 mb-6">
+        <div class="mb-5">
+            <h3 class="text-xl font-black text-ntpuDark">2. 授課教師人數</h3>
+            <p class="text-xs text-gray-500 mt-1">教授、副教授、助理教授與講師的基準授課時數固定；兼任教師授課時數由使用者依系所情況填寫。</p>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-sm">
+                <thead class="bg-gray-50 text-xs text-gray-500">
+                    <tr>
+                        <th class="text-left px-4 py-3">教師類別</th>
+                        <th class="text-left px-4 py-3 w-36">教師人數</th>
+                        <th class="text-left px-4 py-3 w-44">每人基準授課時數</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td class="px-4 py-3 font-semibold">教授</td><td class="px-4 py-2"><input id="evaluation-professor-count" type="number" min="0" step="1" oninput="evaluationRecalculate()" class="w-full rounded-lg border-gray-300 text-sm" placeholder="人數"></td><td class="px-4 py-3 font-semibold">8 小時</td></tr>
+                    <tr class="border-t border-gray-100"><td class="px-4 py-3 font-semibold">副教授</td><td class="px-4 py-2"><input id="evaluation-associate-count" type="number" min="0" step="1" oninput="evaluationRecalculate()" class="w-full rounded-lg border-gray-300 text-sm" placeholder="人數"></td><td class="px-4 py-3 font-semibold">9 小時</td></tr>
+                    <tr class="border-t border-gray-100"><td class="px-4 py-3 font-semibold">助理教授</td><td class="px-4 py-2"><input id="evaluation-assistant-count" type="number" min="0" step="1" oninput="evaluationRecalculate()" class="w-full rounded-lg border-gray-300 text-sm" placeholder="人數"></td><td class="px-4 py-3 font-semibold">9 小時</td></tr>
+                    <tr class="border-t border-gray-100"><td class="px-4 py-3 font-semibold">講師</td><td class="px-4 py-2"><input id="evaluation-lecturer-count" type="number" min="0" step="1" oninput="evaluationRecalculate()" class="w-full rounded-lg border-gray-300 text-sm" placeholder="人數"></td><td class="px-4 py-3 font-semibold">10 小時</td></tr>
+                    <tr class="border-t border-gray-100"><td class="px-4 py-3 font-semibold">兼任教師</td><td class="px-4 py-2"><input id="evaluation-adjunct-count" type="number" min="0" step="1" oninput="evaluationRecalculate()" class="w-full rounded-lg border-gray-300 text-sm" placeholder="人數"></td><td class="px-4 py-2"><input id="evaluation-adjunct-hours" type="number" min="0" step="0.5" oninput="evaluationRecalculate()" class="w-full rounded-lg border-gray-300 text-sm" placeholder="請自行填寫"></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- 3. 系所開課需求 -->
+    <section class="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-5 md:p-6 mb-6">
+        <div class="mb-5">
+            <h3 class="text-xl font-black text-ntpuDark">3. 系所開課需求</h3>
+            <p class="text-xs text-gray-500 mt-1">必修依大一至大四分組；所有課程明細均可修改、刪除或新增。</p>
+        </div>
+
+        <div class="mb-6">
+            <div class="flex items-end justify-between gap-3 mb-3">
+                <div><h4 class="font-black text-lg text-ntpuDark">必修</h4><p class="text-xs text-gray-500 mt-1">總學分＝學分 × 開課總門數；開課總門數預設留空。</p></div>
+            </div>
+            <div id="evaluation-required-groups"></div>
+        </div>
+
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+            <div id="evaluation-elective-section"></div>
+            <div id="evaluation-general-section"></div>
+            <div id="evaluation-support-section"></div>
+            <div id="evaluation-flexible-section"></div>
+        </div>
+    </section>
+
+    <!-- 4. 減授措施 -->
+    <section class="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-5 md:p-6 mb-6">
+        <div class="mb-5">
+            <h3 class="text-xl font-black text-ntpuDark">4. 減授措施</h3>
+            <p class="text-xs text-gray-500 mt-1">選擇方案後，教授、副教授、助理教授與講師的每人授課時數會即時調整。</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <label class="flex items-center gap-3 p-4 rounded-xl border border-gray-200 hover:border-ntpuBlue cursor-pointer"><input type="radio" name="evaluation-reduction" value="none" checked onchange="evaluationRecalculate()" class="text-ntpuBlue focus:ring-ntpuBlue"><span><strong>不減授</strong><small class="block text-xs text-gray-500 mt-1">教授 8／副教授 9／助理教授 9／講師 10</small></span></label>
+            <label class="flex items-center gap-3 p-4 rounded-xl border border-gray-200 hover:border-ntpuBlue cursor-pointer"><input type="radio" name="evaluation-reduction" value="one" onchange="evaluationRecalculate()" class="text-ntpuBlue focus:ring-ntpuBlue"><span><strong>減授 1 小時</strong><small class="block text-xs text-gray-500 mt-1">教授 7／副教授 8／助理教授 8／講師 9</small></span></label>
+            <label class="flex items-center gap-3 p-4 rounded-xl border border-gray-200 hover:border-ntpuBlue cursor-pointer"><input type="radio" name="evaluation-reduction" value="three" onchange="evaluationRecalculate()" class="text-ntpuBlue focus:ring-ntpuBlue"><span><strong>減授 3 小時</strong><small class="block text-xs text-gray-500 mt-1">教授 6／副教授 6／助理教授 6／講師 7</small></span></label>
+        </div>
+    </section>
+
+    <!-- 5. 分析結果 -->
+    <section class="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-5 md:p-6 mb-6">
+        <div class="mb-5">
+            <h3 class="text-xl font-black text-ntpuDark">5. 分析結果</h3>
+            <p class="text-xs text-gray-500 mt-1">單位：每學年每週時數。總需求時數依使用者輸入的各類課程學分加總。</p>
+        </div>
+
+        <div class="overflow-x-auto mb-6">
+            <table class="min-w-full text-sm">
+                <thead class="bg-gray-50 text-xs text-gray-500">
+                    <tr><th class="text-left px-4 py-3">教師類別</th><th class="text-right px-4 py-3">人數</th><th class="text-right px-4 py-3">目前每人授課時數</th><th class="text-right px-4 py-3">供給時數</th></tr>
+                </thead>
+                <tbody id="evaluation-scenario-body"></tbody>
+            </table>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
+            <div class="rounded-xl bg-blue-50 border border-blue-100 p-5"><div class="text-xs font-bold text-gray-500">總供給時數</div><div id="evaluation-total-supply" class="text-3xl font-black text-ntpuBlue mt-2">0</div></div>
+            <div class="rounded-xl bg-gray-50 border border-gray-200 p-5"><div class="text-xs font-bold text-gray-500">總需求時數</div><div id="evaluation-total-demand" class="text-3xl font-black text-ntpuDark mt-2">0</div></div>
+            <div class="rounded-xl bg-gray-50 border border-gray-200 p-5"><div class="text-xs font-bold text-gray-500">供需差額</div><div id="evaluation-difference" class="text-3xl font-black text-gray-700 mt-2">0</div></div>
+        </div>
+
+        <div id="evaluation-result" class="hidden rounded-xl border px-5 py-4 flex items-center gap-3">
+            <i class="fa-solid fa-circle-check"></i>
+            <div><div class="text-xs font-bold opacity-70">評估</div><div id="evaluation-result-text" class="text-lg font-black"></div></div>
+        </div>
+    </section>
+
+    <!-- 6. 提交 -->
+    <section class="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-5 md:p-6">
+        <div class="mb-5">
+            <h3 class="text-xl font-black text-ntpuDark">6. 提交分析結果</h3>
+            <p class="text-xs text-gray-500 mt-1">請填寫姓名後提交。提交後將保存完整分析摘要與課程明細。</p>
+        </div>
+        <div class="max-w-xl">
+            <label for="evaluation-name" class="block text-sm font-bold text-gray-700 mb-1.5">姓名</label>
+            <input id="evaluation-name" type="text" class="w-full rounded-xl border-gray-300 text-sm focus:border-ntpuBlue focus:ring-ntpuBlue" placeholder="請輸入姓名">
+            <div class="flex flex-wrap gap-3 mt-4">
+                <button id="evaluation-submit-button" type="button" onclick="evaluationSubmit()" class="inline-flex items-center justify-center px-5 py-3 rounded-xl bg-ntpuBlue text-white text-sm font-bold hover:bg-blue-800 transition-colors"><i class="fa-solid fa-paper-plane mr-2"></i>提交分析結果</button>
+                <button type="button" onclick="evaluationReset()" class="inline-flex items-center justify-center px-5 py-3 rounded-xl border border-gray-300 text-gray-700 text-sm font-bold hover:bg-gray-50">重設</button>
+            </div>
+            <div id="evaluation-submit-status" class="mt-3 text-sm text-gray-500"></div>
+        </div>
+    </section>
+</div>
+
 <!-- 動態偵測網站標題列高度，供 B｜各系所分析篩選區 sticky 定位使用 -->
 <script>
 (function () {
@@ -1544,5 +1702,6 @@ switchAnalysisTab('school');
         }
     </script>
 	<script src="./js/analysis.js"></script>
+	<script src="./js/evaluation.js"></script>
 </body>
 </html>
