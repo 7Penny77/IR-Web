@@ -931,7 +931,7 @@ const DEPARTMENT_SALARY_HATCH_FIELDS = new Set([
 ]);
 
 const DEPARTMENT_SALARY_COLORS = [
-    '#2B5C8F', '#FFCC00', '#E76F51', '#2A9D8F', '#8A79AF',
+    '#2B5C8F', '#FFF952', '#E76F51', '#2A9D8F', '#8A79AF',
     '#6C757D', '#1D3557', '#FF4500', '#006400', '#F0768B'
 ];
 
