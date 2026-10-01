@@ -40,15 +40,21 @@
             font-weight: 800;
             line-height: 1.35;
         }
-
-        /* B：各系所分析的學院／系所篩選區固定在網站標題列下方。
-           top 由 analysis.js 依 header 實際高度動態設定。 */
-        .department-analysis-filter {
+    
+        /* B｜各系所分析：篩選區固定在網站標題列下方。
+           --ntpu-header-height 由 JS 依 header 實際高度動態更新。 */
+        .department-analysis-filter-sticky {
             position: sticky;
-            top: var(--analysis-header-height, 0px);
+            top: var(--ntpu-header-height, 0px);
             z-index: 40;
         }
-    </style>
+
+        @media (max-width: 639px) {
+            .department-analysis-filter-sticky {
+                border-radius: 0.75rem;
+            }
+        }
+</style>
 </head>
 <body class="bg-ntpuLightBg text-ntpuDark font-sans antialiased flex flex-col min-h-screen">
 
@@ -1245,7 +1251,7 @@
 
     <!-- B：各系所分析 -->
     <section id="analysis-department" class="analysis-subpage hidden">
-        <div id="department-analysis-filter" class="department-analysis-filter bg-white rounded-2xl shadow-sm border border-gray-200/80 p-5 md:p-6 mb-6">
+        <div id="department-analysis-filter" class="department-analysis-filter-sticky bg-white rounded-2xl shadow-sm border border-gray-200/80 p-5 md:p-6 mb-6">
             <div class="flex flex-wrap items-end justify-between gap-4">
                 <div>
                     <span class="text-xs font-bold text-ntpuBlue tracking-widest uppercase">Department Dashboard</span>
@@ -1461,6 +1467,37 @@
     </section>
 
 </div>
+
+<!-- 動態偵測網站標題列高度，供 B｜各系所分析篩選區 sticky 定位使用 -->
+<script>
+(function () {
+    function updateNTPUHeaderHeight() {
+        const header = document.querySelector('body > header');
+        if (!header) return;
+        const height = Math.ceil(header.getBoundingClientRect().height);
+        document.documentElement.style.setProperty('--ntpu-header-height', height + 'px');
+    }
+
+    function initNTPUHeaderHeightObserver() {
+        updateNTPUHeaderHeight();
+
+        const header = document.querySelector('body > header');
+        if (window.ResizeObserver && header) {
+            const observer = new ResizeObserver(updateNTPUHeaderHeight);
+            observer.observe(header);
+        }
+
+        window.addEventListener('resize', updateNTPUHeaderHeight, { passive: true });
+        window.addEventListener('orientationchange', updateNTPUHeaderHeight, { passive: true });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initNTPUHeaderHeightObserver, { once: true });
+    } else {
+        initNTPUHeaderHeightObserver();
+    }
+})();
+</script>
 
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
