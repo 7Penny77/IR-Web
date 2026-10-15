@@ -1274,6 +1274,15 @@
                 </div>
                 <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                     <div>
+                        <label for="department-analysis-teacher-type" class="block text-xs font-bold text-gray-600 mb-1">教師類別</label>
+                        <select id="department-analysis-teacher-type" onchange="departmentTeacherTypeChanged()"
+                                class="rounded-xl border-gray-300 text-sm min-w-[180px] focus:border-ntpuBlue focus:ring-ntpuBlue">
+                            <option value="fulltime">專任</option>
+                            <option value="adjunct_excl">兼任（排除合授）</option>
+                            <option value="adjunct_incl">兼任（包含合授）</option>
+                        </select>
+                    </div>
+                    <div>
                         <label for="department-analysis-college" class="block text-xs font-bold text-gray-600 mb-1">學院</label>
                         <select id="department-analysis-college" onchange="departmentCollegeChanged()"
                                 class="rounded-xl border-gray-300 text-sm min-w-[180px] focus:border-ntpuBlue focus:ring-ntpuBlue"></select>
@@ -1306,7 +1315,10 @@
                     <h3 class="font-black text-lg text-ntpuDark">2. 歷年授課時數</h3>
                     <p class="text-xs text-gray-500 mt-1">111–114 年度，三項指標以系所資料呈現。</p>
                 </div>
-                <div class="h-[420px]"><canvas id="department-teachtime-chart"></canvas></div>
+                <div class="h-[420px]">
+                    <canvas id="department-teachtime-chart"></canvas>
+                    <div id="department-teachtime-no-data" class="hidden h-full items-center justify-center text-gray-400 font-semibold">暫無資料</div>
+                </div>
             </div>
 
             <!-- 3. 教師鐘點費結構 -->
@@ -1321,7 +1333,10 @@
                         <button type="button" id="salary-mode-average" onclick="setDepartmentSalaryMode('average')" class="px-3 py-1.5 rounded-lg text-xs font-bold text-gray-600">教師平均</button>
                     </div>
                 </div>
-                <div class="h-[460px]"><canvas id="department-salary-chart"></canvas></div>
+                <div class="h-[460px]">
+                    <canvas id="department-salary-chart"></canvas>
+                    <div id="department-salary-no-data" class="hidden h-full items-center justify-center text-gray-400 font-semibold">暫無資料</div>
+                </div>
             </div>
 
             <!-- 4. 開課結構 -->
