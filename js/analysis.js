@@ -770,7 +770,7 @@ const analysisReferenceLinesPlugin = {
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
 
-    const labelX = chartArea.right + 8 + index * 90;
+    const labelX = chartArea.right + 8 + index * 115;
     ctx.fillText(line.label, labelX, pixel);
 }
         });
@@ -827,7 +827,7 @@ function updateChart(rows) {
     maintainAspectRatio: false,
     layout: {
         padding: {
-            right: 220
+            right: 270
         }
     },
             indexAxis: isHorizontal ? 'y' : 'x',
