@@ -178,14 +178,14 @@ function analysisCollegeMap() {
  * 這樣即使不同 JSON 的學院文字不同（例如「公院」與「公共事務學院」），
  * 前端仍使用同一套學院篩選。
  */
-function analysisNormalizeRows(topic, useSelectedCourseVariant = false) {
+function analysisNormalizeRows(topic, useSelectedCourseVariant = false, teacherTypeOverride = null) {
     let rows = analysisState.data[topic] || [];
     if (topic === 'course' && useSelectedCourseVariant) {
         const courseKey = {
             fulltime: 'courseFulltime',
             adjunct_excl: 'courseAdjunctExclCoteach',
             adjunct_incl: 'courseAdjunctInclCoteach'
-        }[analysisState.teacherType] || 'courseFulltime';
+        }[teacherTypeOverride || analysisState.teacherType] || 'courseFulltime';
         rows = analysisState.data[courseKey] || [];
     }
     const collegeMap = analysisCollegeMap();
@@ -938,6 +938,7 @@ document.addEventListener('DOMContentLoaded', initTeacherAnalysis);
 const departmentState = {
     selectedCollege: '',
     selectedDepartment: '',
+    teacherType: 'fulltime',
     salaryMode: 'total',
     charts: {}
 };
@@ -1001,9 +1002,27 @@ function departmentRowDepartment(row) {
 }
 
 function departmentRows(topic) {
-    return analysisNormalizeRows(topic).filter(row =>
+    // 兼任資料目前只有開課現況與畢業學分；授課時數、鐘點費不應套用專任資料。
+    if (departmentState.teacherType !== 'fulltime' && (topic === 'teachtime' || topic === 'salary')) {
+        return [];
+    }
+    return analysisNormalizeRows(topic, topic === 'course', departmentState.teacherType).filter(row =>
         departmentRowDepartment(row) === departmentState.selectedDepartment
     );
+}
+
+function departmentSetNoData(canvasId, placeholderId, show) {
+    const canvas = document.getElementById(canvasId);
+    const placeholder = document.getElementById(placeholderId);
+    if (show) {
+        const key = canvasId === 'department-teachtime-chart' ? 'teachtime' : 'salary';
+        departmentChartDestroy(key);
+    }
+    if (canvas) canvas.style.display = show ? 'none' : '';
+    if (placeholder) {
+        placeholder.classList.toggle('hidden', !show);
+        placeholder.classList.toggle('flex', show);
+    }
 }
 
 function departmentLatestRow(topic) {
@@ -1194,8 +1213,14 @@ function departmentCollegeChanged() {
     loadDepartmentAnalysis();
 }
 
+function departmentTeacherTypeChanged() {
+    departmentState.teacherType = document.getElementById('department-analysis-teacher-type')?.value || 'fulltime';
+    loadDepartmentAnalysis();
+}
+
 function loadDepartmentAnalysis() {
     if (!analysisState.loaded) return;
+    departmentState.teacherType = document.getElementById('department-analysis-teacher-type')?.value || departmentState.teacherType || 'fulltime';
     const select = document.getElementById('department-analysis-select');
     if (select) departmentState.selectedDepartment = select.value;
 
@@ -1259,6 +1284,11 @@ function renderDepartmentOverview() {
 }
 
 function renderDepartmentTeachtime() {
+    if (departmentState.teacherType !== 'fulltime') {
+        departmentSetNoData('department-teachtime-chart', 'department-teachtime-no-data', true);
+        return;
+    }
+    departmentSetNoData('department-teachtime-chart', 'department-teachtime-no-data', false);
     const rows = departmentRows('teachtime').sort((a,b) => Number(a.__year)-Number(b.__year));
     const years = rows.map(r => r.__year);
     const actual = rows.map(r => departmentNumber(r,'實際授課時數'));
@@ -1284,6 +1314,11 @@ function setDepartmentSalaryMode(mode) {
 }
 
 function renderDepartmentSalary() {
+    if (departmentState.teacherType !== 'fulltime') {
+        departmentSetNoData('department-salary-chart', 'department-salary-no-data', true);
+        return;
+    }
+    departmentSetNoData('department-salary-chart', 'department-salary-no-data', false);
     const rows = departmentRows('salary').sort((a,b) => Number(a.__year)-Number(b.__year));
     const years = rows.map(r => r.__year);
     const average = departmentState.salaryMode === 'average';
