@@ -706,6 +706,74 @@ function analysisTitle() {
     }[analysisState.stat]}`;
 }
 
+function analysisMedian(values) {
+    if (!values.length) return null;
+    const sorted = [...values].sort((a, b) => a - b);
+    const middle = Math.floor(sorted.length / 2);
+    return sorted.length % 2
+        ? sorted[middle]
+        : (sorted[middle - 1] + sorted[middle]) / 2;
+}
+
+// 僅供「全校比較」主圖使用：依目前篩選與統計後的資料繪製平均值／中位數參考線。
+const analysisReferenceLinesPlugin = {
+    id: 'analysisReferenceLines',
+    afterDraw(chart, args, options) {
+        if (!options || !Number.isFinite(options.mean) || !Number.isFinite(options.median)) return;
+
+        const chartArea = chart.chartArea;
+        const isHorizontal = options.isHorizontal === true;
+        const valueScale = chart.scales[isHorizontal ? 'x' : 'y'];
+        if (!chartArea || !valueScale) return;
+
+        const ctx = chart.ctx;
+        const lines = [
+            { label: `平均 ${formatAnalysisValue(options.mean)}`, value: options.mean, color: '#0f766e' },
+            { label: `中位數 ${formatAnalysisValue(options.median)}`, value: options.median, color: '#c2410c' }
+        ];
+
+        ctx.save();
+        lines.forEach((line, index) => {
+            const pixel = valueScale.getPixelForValue(line.value);
+            if (!Number.isFinite(pixel)) return;
+
+            // 若統計值超出目前座標軸範圍，則不繪製落在圖表外的參考線。
+            if (isHorizontal) {
+                if (pixel < chartArea.left || pixel > chartArea.right) return;
+            } else if (pixel < chartArea.top || pixel > chartArea.bottom) {
+                return;
+            }
+
+            ctx.beginPath();
+            ctx.setLineDash([6, 4]);
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = line.color;
+            if (isHorizontal) {
+                ctx.moveTo(pixel, chartArea.top);
+                ctx.lineTo(pixel, chartArea.bottom);
+            } else {
+                ctx.moveTo(chartArea.left, pixel);
+                ctx.lineTo(chartArea.right, pixel);
+            }
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            ctx.font = '12px sans-serif';
+            ctx.fillStyle = line.color;
+            ctx.textBaseline = 'bottom';
+            if (isHorizontal) {
+                ctx.textAlign = 'left';
+                const labelX = Math.min(pixel + 5, chartArea.right - 100);
+                ctx.fillText(line.label, Math.max(chartArea.left + 2, labelX), chartArea.top + 14 + index * 15);
+            } else {
+                ctx.textAlign = 'right';
+                ctx.fillText(line.label, chartArea.right - 4, Math.max(chartArea.top + 12 + index * 14, pixel - 3 - index * 14));
+            }
+        });
+        ctx.restore();
+    }
+};
+
 function updateChart(rows) {
     const canvas = document.getElementById('analysis-chart');
     const empty = document.getElementById('analysis-chart-empty');
@@ -729,9 +797,17 @@ function updateChart(rows) {
 
     const isHorizontal = analysisState.chartType === 'horizontalBar';
     const type = analysisState.chartType === 'line' ? 'line' : 'bar';
+    const selectedValues = rows
+        .map(row => Number(row.value))
+        .filter(value => Number.isFinite(value));
+    const meanValue = selectedValues.length
+        ? selectedValues.reduce((sum, value) => sum + value, 0) / selectedValues.length
+        : null;
+    const medianValue = analysisMedian(selectedValues);
 
     analysisState.chart = new Chart(canvas.getContext('2d'), {
         type,
+        plugins: [analysisReferenceLinesPlugin],
         data: {
             labels: model.categories.map(String),
             datasets: model.datasets.map(dataset => ({
@@ -754,6 +830,11 @@ function updateChart(rows) {
                 legend: {
                     display: model.datasets.length > 1,
                     position: 'bottom'
+                },
+                analysisReferenceLines: {
+                    mean: meanValue,
+                    median: medianValue,
+                    isHorizontal
                 },
                 tooltip: {
                     callbacks: {
