@@ -1213,10 +1213,11 @@ function departmentCollegeChanged() {
     loadDepartmentAnalysis();
 }
 
-function departmentTeacherTypeChanged() {
+// Explicitly expose the handler on window because index.html calls it from an inline onchange attribute.
+window.departmentTeacherTypeChanged = function departmentTeacherTypeChanged() {
     departmentState.teacherType = document.getElementById('department-analysis-teacher-type')?.value || 'fulltime';
     loadDepartmentAnalysis();
-}
+};
 
 function loadDepartmentAnalysis() {
     if (!analysisState.loaded) return;
