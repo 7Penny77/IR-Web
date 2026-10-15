@@ -1149,9 +1149,9 @@
 
             <div class="mt-4 flex items-center gap-2 text-xs text-gray-500">
                 <i class="fa-solid fa-user-check text-ntpuBlue"></i>
-                <label for="analysis-teacher-type" class="font-semibold">教師類別</label>
+                <label for="analysis-teacher-type" "text-sm font-bold text-gray-700">教師類別</label>
                 <select id="analysis-teacher-type" onchange="analysisTeacherTypeChanged()"
-                        class="rounded-lg border-gray-300 focus:border-ntpuBlue focus:ring-ntpuBlue text-xs py-1">
+                        class="rounded-lg border-gray-500 focus:border-ntpuBlue focus:ring-ntpuBlue text-xs py-1">
                     <option value="fulltime">專任</option>
                     <option value="adjunct_excl">兼任（排除合授）</option>
                     <option value="adjunct_incl">兼任（包含合授）</option>
@@ -1299,12 +1299,16 @@
         <div id="department-dashboard" class="space-y-6">
             <!-- 1. 系所基本概況 -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-5 md:p-6">
-                <div class="flex items-center justify-between mb-5">
+                <div class="flex items-center justify-between gap-3 mb-5">
                     <div>
                         <h3 class="font-black text-lg text-ntpuDark">1. 系所基本概況</h3>
-                        <p class="text-xs text-gray-500 mt-1">114 年度；平均授課時數以實際授課時數 ÷ 教師人數計算。</p>
+                        <p class="text-xs text-gray-500 mt-1">平均授課時數以實際授課時數 ÷ 教師人數計算。</p>
                     </div>
-                    <span id="department-overview-year" class="text-xs font-bold text-ntpuBlue bg-blue-50 px-3 py-1.5 rounded-full">114</span>
+                    <select id="department-overview-year-select" onchange="departmentSectionYearChanged('overview')"
+                            aria-label="系所基本概況年度" class="rounded-lg border-gray-300 text-xs focus:border-ntpuBlue focus:ring-ntpuBlue">
+                        <option value="111">111 年度</option><option value="112">112 年度</option>
+                        <option value="113">113 年度</option><option value="114" selected>114 年度</option>
+                    </select>
                 </div>
                 <div id="department-overview-cards" class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-3"></div>
             </div>
@@ -1344,9 +1348,14 @@
                 <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
                     <div>
                         <h3 class="font-black text-lg text-ntpuDark">4. 開課結構</h3>
-                        <p class="text-xs text-gray-500 mt-1">114 年度；不含大班、支援外系的獨立欄位，依資料集原始分類呈現。</p>
+                        <p class="text-xs text-gray-500 mt-1">不含大班、支援外系的獨立欄位，依資料集原始分類呈現。</p>
                     </div>
-                    <div class="flex flex-wrap gap-2">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <select id="department-course-year-select" onchange="departmentSectionYearChanged('course')" aria-label="開課結構年度"
+                                class="rounded-lg border-gray-300 text-xs focus:border-ntpuBlue focus:ring-ntpuBlue">
+                            <option value="111">111 年度</option><option value="112">112 年度</option>
+                            <option value="113">113 年度</option><option value="114" selected>114 年度</option>
+                        </select>
                         <select id="department-course-unit" onchange="updateDepartmentCourseCharts()"
                                 class="rounded-lg border-gray-300 text-xs focus:border-ntpuBlue focus:ring-ntpuBlue">
                             <option value="學分">學分</option><option value="時數">時數</option><option value="堂數">堂數</option>
@@ -1365,9 +1374,15 @@
                 <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
                     <div>
                         <h3 class="font-black text-lg text-ntpuDark">5. 大班授課</h3>
-                        <p class="text-xs text-gray-500 mt-1">114 年度；依必修、選修、通識、大一國文、基礎分類。</p>
+                        <p class="text-xs text-gray-500 mt-1">依必修、選修、通識、大一國文、基礎分類。</p>
                     </div>
-                    <select id="department-large-unit" onchange="updateDepartmentLargeChart()"
+                    <div class="flex flex-wrap items-center gap-2">
+                        <select id="department-large-year-select" onchange="departmentSectionYearChanged('large')" aria-label="大班授課年度"
+                                class="rounded-lg border-gray-300 text-xs focus:border-ntpuBlue focus:ring-ntpuBlue">
+                            <option value="111">111 年度</option><option value="112">112 年度</option>
+                            <option value="113">113 年度</option><option value="114" selected>114 年度</option>
+                        </select>
+                        <select id="department-large-unit" onchange="updateDepartmentLargeChart()"
                             class="rounded-lg border-gray-300 text-xs focus:border-ntpuBlue focus:ring-ntpuBlue">
                         <option value="學分">學分</option><option value="時數">時數</option><option value="堂數">堂數</option>
                     </select>
@@ -1380,9 +1395,15 @@
                 <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
                     <div>
                         <h3 class="font-black text-lg text-ntpuDark">6. 支援外系</h3>
-                        <p class="text-xs text-gray-500 mt-1">114 年度；依課程類別呈現支援外系的學分、時數或堂數。</p>
+                        <p class="text-xs text-gray-500 mt-1">依課程類別呈現支援外系的學分、時數或堂數。</p>
                     </div>
-                    <select id="department-support-unit" onchange="updateDepartmentSupportChart()"
+                    <div class="flex flex-wrap items-center gap-2">
+                        <select id="department-support-year-select" onchange="departmentSectionYearChanged('support')" aria-label="支援外系年度"
+                                class="rounded-lg border-gray-300 text-xs focus:border-ntpuBlue focus:ring-ntpuBlue">
+                            <option value="111">111 年度</option><option value="112">112 年度</option>
+                            <option value="113">113 年度</option><option value="114" selected>114 年度</option>
+                        </select>
+                        <select id="department-support-unit" onchange="updateDepartmentSupportChart()"
                             class="rounded-lg border-gray-300 text-xs focus:border-ntpuBlue focus:ring-ntpuBlue">
                         <option value="學分">學分</option><option value="時數">時數</option><option value="堂數">堂數</option>
                     </select>
