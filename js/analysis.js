@@ -1031,6 +1031,19 @@ function departmentLatestRow(topic) {
     return [...rows].sort((a,b) => Number(b.__year) - Number(a.__year))[0];
 }
 
+function departmentRowForYear(topic, year) {
+    const targetYear = Number(year);
+    return departmentRows(topic).find(row => Number(row.__year) === targetYear) || null;
+}
+
+// 1、4–6 區塊各自使用年度篩選，不影響其他區塊的年度或篩選設定。
+window.departmentSectionYearChanged = function departmentSectionYearChanged(section) {
+    if (section === 'overview') renderDepartmentOverview();
+    else if (section === 'course') updateDepartmentCourseCharts();
+    else if (section === 'large') updateDepartmentLargeChart();
+    else if (section === 'support') updateDepartmentSupportChart();
+};
+
 function departmentNumber(row, field) {
     return analysisNumber(row?.[field]);
 }
@@ -1253,9 +1266,10 @@ function renderDepartmentOverview() {
     const target = document.getElementById('department-overview-cards');
     if (!target) return;
 
-    const teach = departmentLatestRow('teachtime');
-    const course = departmentLatestRow('course');
-    const salary = departmentLatestRow('salary');
+    const selectedYear = document.getElementById('department-overview-year-select')?.value || '114';
+    const teach = departmentRowForYear('teachtime', selectedYear);
+    const course = departmentRowForYear('course', selectedYear);
+    const salary = departmentRowForYear('salary', selectedYear);
 
     const teachers = departmentNumber(teach,'教師人數') || departmentNumber(course,'教師人數') || departmentNumber(salary,'教師人數');
     const actual = departmentNumber(teach,'實際授課時數');
@@ -1341,7 +1355,8 @@ function renderDepartmentSalary() {
 }
 
 function updateDepartmentCourseCharts() {
-    const row = departmentLatestRow('course');
+    const selectedYear = document.getElementById('department-course-year-select')?.value || '114';
+    const row = departmentRowForYear('course', selectedYear);
     const unit = document.getElementById('department-course-unit')?.value || '學分';
     const stat = document.getElementById('department-course-stat')?.value || 'sum';
 
@@ -1357,7 +1372,8 @@ function updateDepartmentCourseCharts() {
 }
 
 function updateDepartmentLargeChart() {
-    const row = departmentLatestRow('course');
+    const selectedYear = document.getElementById('department-large-year-select')?.value || '114';
+    const row = departmentRowForYear('course', selectedYear);
     const unit = document.getElementById('department-large-unit')?.value || '學分';
     const prefixes = DEPARTMENT_COURSE_CATEGORIES.map(x => x.key + '大班');
     const labels = DEPARTMENT_COURSE_CATEGORIES.map(x => x.label);
@@ -1371,7 +1387,8 @@ function updateDepartmentLargeChart() {
 }
 
 function updateDepartmentSupportChart() {
-    const row = departmentLatestRow('course');
+    const selectedYear = document.getElementById('department-support-year-select')?.value || '114';
+    const row = departmentRowForYear('course', selectedYear);
     const unit = document.getElementById('department-support-unit')?.value || '學分';
     const prefixes = DEPARTMENT_COURSE_CATEGORIES.map(x => x.key + '支援');
     const labels = DEPARTMENT_COURSE_CATEGORIES.map(x => x.label);
