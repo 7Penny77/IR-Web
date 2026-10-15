@@ -766,9 +766,13 @@ const analysisReferenceLinesPlugin = {
                 const labelX = Math.min(pixel + 5, chartArea.right - 100);
                 ctx.fillText(line.label, Math.max(chartArea.left + 2, labelX), chartArea.top + 14 + index * 15);
             } else {
-                ctx.textAlign = 'right';
-                ctx.fillText(line.label, chartArea.right - 4, Math.max(chartArea.top + 12 + index * 14, pixel - 3 - index * 14));
-            }
+    // 文字放在圖表右側，與參考線保持相同高度
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+
+    const labelX = chartArea.right + 8 + index * 90;
+    ctx.fillText(line.label, labelX, pixel);
+}
         });
         ctx.restore();
     }
@@ -819,8 +823,13 @@ function updateChart(rows) {
             }))
         },
         options: {
-            responsive: true,
-            maintainAspectRatio: false,
+    responsive: true,
+    maintainAspectRatio: false,
+    layout: {
+        padding: {
+            right: 220
+        }
+    },
             indexAxis: isHorizontal ? 'y' : 'x',
             interaction: {
                 mode: 'index',
