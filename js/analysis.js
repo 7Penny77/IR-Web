@@ -11,9 +11,13 @@ const analysisState = {
         teachtime: [],
         salary: [],
         graduate: [],
-        course: []
+        course: [],
+        courseFulltime: [],
+        courseAdjunctExclCoteach: [],
+        courseAdjunctInclCoteach: []
     },
     loaded: false,
+    teacherType: 'fulltime',
     filters: {
         years: null,       // null = 全部；[] = 不選任何項目
         colleges: null,
@@ -76,7 +80,7 @@ const TOPICS = {
         }
     },
     course: {
-        label: '114 開課現況',
+        label: '開課現況',
         units: ['學分', '時數', '堂數'],
         variables: {
             '學分': [
@@ -174,8 +178,16 @@ function analysisCollegeMap() {
  * 這樣即使不同 JSON 的學院文字不同（例如「公院」與「公共事務學院」），
  * 前端仍使用同一套學院篩選。
  */
-function analysisNormalizeRows(topic) {
-    const rows = analysisState.data[topic] || [];
+function analysisNormalizeRows(topic, useSelectedCourseVariant = false) {
+    let rows = analysisState.data[topic] || [];
+    if (topic === 'course' && useSelectedCourseVariant) {
+        const courseKey = {
+            fulltime: 'courseFulltime',
+            adjunct_excl: 'courseAdjunctExclCoteach',
+            adjunct_incl: 'courseAdjunctInclCoteach'
+        }[analysisState.teacherType] || 'courseFulltime';
+        rows = analysisState.data[courseKey] || [];
+    }
     const collegeMap = analysisCollegeMap();
 
     return rows.map(row => {
@@ -186,8 +198,8 @@ function analysisNormalizeRows(topic) {
             ...row,
             系所: department,
             __college: collegeMap[department] || row.學院 || '',
-            // course.json 是 114 開課現況，原始資料沒有年度欄位，因此統一標記為 114。
-            __year: topic === 'course' ? 114 : Number(row.年度)
+            // 全校比較使用新開課資料中的實際年度；各系所分析與檢視資料沿用既有 course.json。
+            __year: topic === 'course' && !useSelectedCourseVariant ? 114 : Number(row.年度)
         };
 
         return normalized;
@@ -202,7 +214,10 @@ async function loadAnalysisData() {
         teachtime: 'teachtime.json',
         salary: 'salary.json',
         graduate: 'graduate.json',
-        course: 'course.json'
+        course: 'course.json',
+        courseFulltime: 'course_fulltime.json',
+        courseAdjunctExclCoteach: 'course_adjunct_excl_coteach.json',
+        courseAdjunctInclCoteach: 'course_adjunct_incl_coteach.json'
     };
 
     try {
@@ -237,7 +252,7 @@ function populateAnalysisFilters() {
         ...analysisNormalizeRows('teachtime'),
         ...analysisNormalizeRows('salary'),
         ...analysisNormalizeRows('graduate'),
-        ...analysisNormalizeRows('course')
+        ...analysisNormalizeRows('course', true)
     ];
 
     const years = analysisUnique(allRows.map(r => r.__year)).sort((a, b) => b - a);
@@ -369,9 +384,23 @@ function renderAnalysisControls() {
     const topicSelect = document.getElementById('analysis-topic');
     if (!topicSelect) return;
 
-    topicSelect.innerHTML = Object.entries(TOPICS).map(([key, topic]) =>
-        `<option value="${key}">${topic.label}</option>`
-    ).join('');
+    const allowedTopics = analysisState.teacherType === 'fulltime'
+        ? Object.entries(TOPICS)
+        : Object.entries(TOPICS).filter(([key]) => key === 'graduate' || key === 'course');
+    topicSelect.innerHTML = allowedTopics.map(([key, topic]) => {
+        const label = key === 'course'
+            ? ({
+                fulltime: '專任教師開課現況',
+                adjunct_excl: '兼任開課現況（排除合授）',
+                adjunct_incl: '兼任開課現況（包含合授）'
+            }[analysisState.teacherType] || topic.label)
+            : topic.label;
+        return `<option value="${key}">${label}</option>`;
+    }).join('');
+
+    if (!allowedTopics.some(([key]) => key === analysisState.topic)) {
+        analysisState.topic = analysisState.teacherType === 'fulltime' ? 'teachtime' : 'course';
+    }
     topicSelect.value = analysisState.topic;
 
     updateVariableOptions();
@@ -471,6 +500,12 @@ function updateCustomOptions() {
     den.value = analysisState.customDenominator;
 }
 
+function analysisTeacherTypeChanged() {
+    analysisState.teacherType = document.getElementById('analysis-teacher-type')?.value || 'fulltime';
+    renderAnalysisControls();
+    updateAnalysis();
+}
+
 function analysisTopicChanged() {
     analysisState.topic = document.getElementById('analysis-topic').value;
 
@@ -520,7 +555,7 @@ function analysisAxisChanged() {
 }
 
 function getFilteredRows(topic) {
-    const rows = analysisNormalizeRows(topic);
+    const rows = analysisNormalizeRows(topic, topic === 'course');
     const { years, colleges, departments } = analysisState.filters;
 
     return rows.filter(row => {
@@ -654,7 +689,13 @@ function formatAnalysisValue(value) {
 }
 
 function analysisTitle() {
-    const topic = TOPICS[analysisState.topic].label;
+    const topic = analysisState.topic === 'course'
+        ? ({
+            fulltime: '專任教師開課現況',
+            adjunct_excl: '兼任開課現況（排除合授）',
+            adjunct_incl: '兼任開課現況（包含合授）'
+        }[analysisState.teacherType] || TOPICS.course.label)
+        : TOPICS[analysisState.topic].label;
     if (analysisState.stat === 'custom') {
         return `${topic}｜${analysisFieldLabel(analysisState.topic, analysisState.customNumerator)} ÷ ${analysisFieldLabel(analysisState.topic, analysisState.customDenominator)}`;
     }
