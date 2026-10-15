@@ -827,7 +827,7 @@ function updateChart(rows) {
     maintainAspectRatio: false,
     layout: {
         padding: {
-            right: 270
+            right: 220
         }
     },
             indexAxis: isHorizontal ? 'y' : 'x',
