@@ -1149,9 +1149,9 @@
 
             <div class="mt-4 flex items-center gap-2 text-xs text-gray-500">
                 <i class="fa-solid fa-user-check text-ntpuBlue"></i>
-                <label for="analysis-teacher-type" "text-sm font-bold text-gray-700">教師類別</label>
+                <label for="analysis-teacher-type" class="font-semibold">教師類別</label>
                 <select id="analysis-teacher-type" onchange="analysisTeacherTypeChanged()"
-                        class="rounded-lg border-gray-500 focus:border-ntpuBlue focus:ring-ntpuBlue text-xs py-1">
+                        class="rounded-lg border-gray-300 focus:border-ntpuBlue focus:ring-ntpuBlue text-xs py-1">
                     <option value="fulltime">專任</option>
                     <option value="adjunct_excl">兼任（排除合授）</option>
                     <option value="adjunct_incl">兼任（包含合授）</option>
@@ -1387,7 +1387,6 @@
                         <option value="學分">學分</option><option value="時數">時數</option><option value="堂數">堂數</option>
                     </select>
                 </div>
-				</div>
                 <div class="h-[360px]"><canvas id="department-large-chart"></canvas></div>
             </div>
 
@@ -1409,7 +1408,6 @@
                         <option value="學分">學分</option><option value="時數">時數</option><option value="堂數">堂數</option>
                     </select>
                 </div>
-				</div>
                 <div class="h-[360px]"><canvas id="department-support-chart"></canvas></div>
             </div>
 
