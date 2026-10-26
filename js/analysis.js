@@ -775,8 +775,8 @@ const analysisReferenceLinesPlugin = {
 
         const ctx = chart.ctx;
         const lines = [
-            { label: `平均 ${formatAnalysisValue(options.mean)}`, value: options.mean, color: '#0f766e' },
-            { label: `中位數 ${formatAnalysisValue(options.median)}`, value: options.median, color: '#c2410c' }
+            { value: options.mean, color: '#0f766e' },
+            { value: options.median, color: '#c2410c' }
         ];
 
         ctx.save();
@@ -808,48 +808,7 @@ const analysisReferenceLinesPlugin = {
             ctx.setLineDash([]);
         });
 
-        ctx.font = '12px sans-serif';
-        if (isHorizontal) {
-            // 橫條圖的參考線是垂直線，標籤仍放在圖表上緣。
-            visibleLines.forEach((line, index) => {
-                ctx.fillStyle = line.color;
-                ctx.textAlign = 'left';
-                ctx.textBaseline = 'bottom';
-                const labelX = Math.min(line.pixel + 5, chartArea.right - 100);
-                ctx.fillText(line.label, Math.max(chartArea.left + 2, labelX), chartArea.top + 14 + index * 15);
-            });
-        } else {
-            // 直條圖／折線圖：標籤共用同一個 X 座標，並自動維持最小垂直間距。
-            const minGap = 18;
-            const topLimit = chartArea.top + 10;
-            const bottomLimit = chartArea.bottom - 10;
-            const ordered = visibleLines
-                .map(line => ({ ...line, labelY: Math.max(topLimit, Math.min(bottomLimit, line.pixel)) }))
-                .sort((a, b) => a.labelY - b.labelY);
-
-            for (let i = 1; i < ordered.length; i++) {
-                if (ordered[i].labelY - ordered[i - 1].labelY < minGap) {
-                    ordered[i].labelY = ordered[i - 1].labelY + minGap;
-                }
-            }
-            if (ordered.length && ordered[ordered.length - 1].labelY > bottomLimit) {
-                const shiftUp = ordered[ordered.length - 1].labelY - bottomLimit;
-                ordered.forEach(line => line.labelY -= shiftUp);
-            }
-
-            // 標籤固定在繪圖區左緣，並以不透明底色覆蓋網格線，避免被柱體或網格干擾。
-            // 先設定同一個左側 X 座標，再依參考線位置排列；距離過近時維持最小上下間距。
-            const labelX = chartArea.left + 5;
-            ctx.textAlign = 'left';
-            ctx.textBaseline = 'middle';
-            ordered.forEach(line => {
-                const textWidth = ctx.measureText(line.label).width;
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(labelX - 4, line.labelY - 10, textWidth + 10, 20);
-                ctx.fillStyle = line.color;
-                ctx.fillText(line.label, labelX, line.labelY);
-            });
-        }
+        // 平均數與中位數只繪製參考線；文字改由圖表外部圖例呈現。
 
         ctx.restore();
     }
@@ -888,21 +847,26 @@ function updateChart(rows) {
 
     const wrapper = document.getElementById('analysis-chart-wrapper');
     const inner = document.getElementById('analysis-chart-inner');
+    const shouldScrollX = !isHorizontal && (type === 'bar' || type === 'line');
+    const chartViewportHeight = 545;
+    const chartContentHeight = isHorizontal ? Math.max(420, model.categories.length * 34) : 520;
     if (wrapper && inner) {
         const viewportWidth = wrapper.clientWidth || 800;
         const categoryWidth = model.categories.reduce((total, category) =>
             total + Math.max(150, String(category).length * 16 + 42), 0);
-        const shouldScroll = !isHorizontal && (type === 'bar' || type === 'line');
-        // 直條圖／折線圖依類別數配置最小寬度；超出可視區時由外層容器水平捲動。
-        const chartContentWidth = shouldScroll ? categoryWidth + 24 : viewportWidth;
+        // 直條圖／折線圖依類別數配置寬度；橫條圖則固定可視高度，內容超出時垂直捲動。
+        const chartContentWidth = shouldScrollX ? categoryWidth + 24 : viewportWidth;
         inner.style.width = `${Math.max(viewportWidth, chartContentWidth)}px`;
         inner.style.minWidth = `${Math.max(viewportWidth, chartContentWidth)}px`;
         inner.style.flex = '0 0 auto';
-        // 外層高度大於 canvas，將水平捲軸放在圖表圖例下方的獨立空間。
-        inner.style.height = '520px';
+        inner.style.height = `${chartContentHeight}px`;
+        wrapper.style.height = `${chartViewportHeight}px`;
+        wrapper.style.overflowX = shouldScrollX && chartContentWidth > viewportWidth ? 'auto' : 'hidden';
+        wrapper.style.overflowY = isHorizontal && chartContentHeight > chartViewportHeight ? 'auto' : 'hidden';
         canvas.style.display = 'block';
-        canvas.style.maxHeight = '520px';
-        wrapper.style.overflowX = shouldScroll && chartContentWidth > viewportWidth ? 'auto' : 'hidden';
+        canvas.style.width = '100%';
+        canvas.style.height = '100%';
+        canvas.style.maxHeight = 'none';
     }
 
     analysisState.chart = new Chart(canvas.getContext('2d'), {
@@ -986,24 +950,20 @@ function updateChart(rows) {
         }
     });
 
-    // 圖例放在水平捲動容器之外，因此無論圖表多寬，圖例都不會被捲軸覆蓋。
+    // 圖例放在捲動容器外；資料系列圖例在前，平均數／中位數參考線圖例固定接在右側。
     const externalLegend = document.getElementById('analysis-chart-legend');
     if (externalLegend) {
-        const legendItems = model.datasets.length > 1 ? model.datasets.map((dataset, index) => {
+        const datasetLegend = model.datasets.length > 1 ? model.datasets.map((dataset, index) => {
             const style = analysisState.chart.getDatasetMeta(index)?.controller?.getStyle?.() || {};
             const color = Array.isArray(style.backgroundColor) ? style.backgroundColor[0] : (style.backgroundColor || style.borderColor || '#64748b');
             return `<span class="inline-flex items-center gap-2 mr-4 mb-2 text-sm text-gray-700"><span class="inline-block w-3 h-3 rounded-sm border border-gray-300" style="background:${escapeHtml(String(color))}"></span><span>${escapeHtml(analysisDisplayText(dataset.label))}</span></span>`;
         }).join('') : '';
+        const referenceLegend = Number.isFinite(meanValue) && Number.isFinite(medianValue)
+            ? `<span class="inline-flex items-center gap-2 mr-4 mb-2 text-sm text-gray-700"><span class="inline-block w-5 border-t-2 border-dashed" style="border-color:#0f766e"></span><span>平均數</span></span><span class="inline-flex items-center gap-2 mr-4 mb-2 text-sm text-gray-700"><span class="inline-block w-5 border-t-2 border-dashed" style="border-color:#c2410c"></span><span>中位數</span></span>`
+            : '';
+        const legendItems = datasetLegend + referenceLegend;
         externalLegend.innerHTML = legendItems;
         externalLegend.classList.toggle('hidden', !legendItems);
-    }
-
-    if (wrapper) {
-        const height = isHorizontal
-            ? Math.max(420, model.categories.length * 34)
-            : 520;
-        wrapper.style.height = `${height + 20}px`;
-        if (inner) inner.style.height = `${height}px`;
     }
 }
 
@@ -1310,7 +1270,7 @@ function departmentMakeBarChart(canvasId, key, labels, values, options={}) {
                 label: analysisDisplayText(options.label || ''),
                 data: values,
                 borderWidth: 1,
-                maxBarThickness: 48
+                maxBarThickness: 20
             }]
         },
         options: {
