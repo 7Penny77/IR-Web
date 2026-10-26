@@ -1106,7 +1106,7 @@
             <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
                 <div>
                     <h3 class="font-black text-lg text-ntpuDark">篩選條件</h3>
-                    <p class="text-xs text-gray-500 mt-1">年度、學院與系所可複選。</p>
+                    <p class="text-xs text-gray-500 mt-1">學年度、學院與系所可複選。</p>
                 </div>
                 <span id="analysis-filter-summary" class="text-xs font-semibold text-ntpuBlue bg-blue-50 px-3 py-1.5 rounded-full">載入中</span>
             </div>
@@ -1114,7 +1114,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                 <div>
                     <div class="flex items-center justify-between mb-2">
-                        <label class="text-sm font-bold text-gray-700">年度</label>
+                        <label class="text-sm font-bold text-gray-700">學年度</label>
                         <div class="space-x-1">
                             <button type="button" class="text-xs text-ntpuBlue hover:underline" onclick="selectAllAnalysisFilters('year', true)">全選</button>
                             <button type="button" class="text-xs text-gray-500 hover:underline" onclick="selectAllAnalysisFilters('year', false)">清除</button>
@@ -1219,7 +1219,7 @@
                         <select id="analysis-axis" onchange="analysisAxisChanged()"
                                 class="w-full rounded-xl border-gray-300 focus:border-ntpuBlue focus:ring-ntpuBlue text-sm">
                             <option value="department">系所</option>
-                            <option value="year">年度</option>
+                            <option value="year">學年度</option>
                         </select>
                     </div>
                 </div>
@@ -1237,10 +1237,12 @@
                     </button>
                 </div>
 
-                <div id="analysis-chart-wrapper" class="relative h-[520px]">
-                    <canvas id="analysis-chart"></canvas>
-                    <div id="analysis-chart-empty" class="hidden absolute inset-0 items-center justify-center text-gray-400">
-                        沒有符合目前篩選條件的資料。
+                <div id="analysis-chart-wrapper" class="relative h-[520px] w-full overflow-x-auto overflow-y-hidden">
+                    <div id="analysis-chart-inner" class="relative h-full min-w-full">
+                        <canvas id="analysis-chart"></canvas>
+                        <div id="analysis-chart-empty" class="hidden absolute inset-0 items-center justify-center text-gray-400">
+                            沒有符合目前篩選條件的資料。
+                        </div>
                     </div>
                 </div>
 
@@ -1305,9 +1307,9 @@
                         <p class="text-xs text-gray-500 mt-1">平均授課時數以實際授課時數 ÷ 教師人數計算。</p>
                     </div>
                     <select id="department-overview-year-select" onchange="departmentSectionYearChanged('overview')"
-                            aria-label="系所基本概況年度" class="rounded-lg border-gray-300 text-xs focus:border-ntpuBlue focus:ring-ntpuBlue">
-                        <option value="111">111 年度</option><option value="112">112 年度</option>
-                        <option value="113">113 年度</option><option value="114" selected>114 年度</option>
+                            aria-label="系所基本概況學年度" class="rounded-lg border-gray-300 text-xs focus:border-ntpuBlue focus:ring-ntpuBlue">
+                        <option value="111">111 學年度</option><option value="112">112 學年度</option>
+                        <option value="113">113 學年度</option><option value="114" selected>114 學年度</option>
                     </select>
                 </div>
                 <div id="department-overview-cards" class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-3"></div>
@@ -1317,7 +1319,7 @@
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-5 md:p-6">
                 <div class="mb-4">
                     <h3 class="font-black text-lg text-ntpuDark">2. 歷年授課時數</h3>
-                    <p class="text-xs text-gray-500 mt-1">111–114 年度，三項指標以系所資料呈現。</p>
+                    <p class="text-xs text-gray-500 mt-1">111–114 學年度，三項指標以系所資料呈現。</p>
                 </div>
                 <div class="h-[420px]">
                     <canvas id="department-teachtime-chart"></canvas>
@@ -1330,7 +1332,7 @@
                 <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
                     <div>
                         <h3 class="font-black text-lg text-ntpuDark">3. 教師鐘點費結構</h3>
-                        <p class="text-xs text-gray-500 mt-1">111–114 年度；可切換總量或每位教師平均。</p>
+                        <p class="text-xs text-gray-500 mt-1">111–114 學年度；可切換總量或每位教師平均。</p>
                     </div>
                     <div class="inline-flex rounded-xl border border-gray-200 p-1 bg-gray-50">
                         <button type="button" id="salary-mode-total" onclick="setDepartmentSalaryMode('total')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-ntpuBlue text-white">總量</button>
@@ -1351,14 +1353,14 @@
                         <p class="text-xs text-gray-500 mt-1">不含大班、支援外系的獨立欄位，依資料集原始分類呈現。</p>
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
-                        <select id="department-course-year-select" onchange="departmentSectionYearChanged('course')" aria-label="開課結構年度"
+                        <select id="department-course-year-select" onchange="departmentSectionYearChanged('course')" aria-label="開課結構學年度"
                                 class="rounded-lg border-gray-300 text-xs focus:border-ntpuBlue focus:ring-ntpuBlue">
-                            <option value="111">111 年度</option><option value="112">112 年度</option>
-                            <option value="113">113 年度</option><option value="114" selected>114 年度</option>
+                            <option value="111">111 學年度</option><option value="112">112 學年度</option>
+                            <option value="113">113 學年度</option><option value="114" selected>114 學年度</option>
                         </select>
                         <select id="department-course-unit" onchange="updateDepartmentCourseCharts()"
                                 class="rounded-lg border-gray-300 text-xs focus:border-ntpuBlue focus:ring-ntpuBlue">
-                            <option value="學分">學分</option><option value="時數">時數</option><option value="堂數">堂數</option>
+                            <option value="學分">學分</option><option value="時數">時數</option><option value="堂數">課程數量</option>
                         </select>
                         <select id="department-course-stat" onchange="updateDepartmentCourseCharts()"
                                 class="rounded-lg border-gray-300 text-xs focus:border-ntpuBlue focus:ring-ntpuBlue">
@@ -1371,55 +1373,57 @@
 
             <!-- 5. 大班授課 -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-5 md:p-6">
-                <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                <div class="flex flex-wrap items-start justify-between gap-3 mb-4">
                     <div>
                         <h3 class="font-black text-lg text-ntpuDark">5. 大班授課</h3>
                         <p class="text-xs text-gray-500 mt-1">依必修、選修、通識、大一國文、基礎分類。</p>
                     </div>
-                    <div class="flex flex-wrap items-center gap-2">
-                        <select id="department-large-year-select" onchange="departmentSectionYearChanged('large')" aria-label="大班授課年度"
+                    <div class="flex flex-wrap items-center gap-2 ml-auto">
+                        <select id="department-large-year-select" onchange="departmentSectionYearChanged('large')" aria-label="大班授課學年度"
                                 class="rounded-lg border-gray-300 text-xs focus:border-ntpuBlue focus:ring-ntpuBlue">
-                            <option value="111">111 年度</option><option value="112">112 年度</option>
-                            <option value="113">113 年度</option><option value="114" selected>114 年度</option>
+                            <option value="111">111 學年度</option><option value="112">112 學年度</option>
+                            <option value="113">113 學年度</option><option value="114" selected>114 學年度</option>
                         </select>
                         <select id="department-large-unit" onchange="updateDepartmentLargeChart()"
-                            class="rounded-lg border-gray-300 text-xs focus:border-ntpuBlue focus:ring-ntpuBlue">
-                        <option value="學分">學分</option><option value="時數">時數</option><option value="堂數">堂數</option>
-                    </select>
+                                class="rounded-lg border-gray-300 text-xs focus:border-ntpuBlue focus:ring-ntpuBlue">
+                            <option value="學分">學分</option><option value="時數">時數</option><option value="堂數">課程數量</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="h-[360px]"><canvas id="department-large-chart"></canvas></div>
+                <div class="relative h-[360px] w-full"><canvas id="department-large-chart"></canvas></div>
             </div>
 
             <!-- 6. 支援外系 -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-5 md:p-6">
-                <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                <div class="flex flex-wrap items-start justify-between gap-3 mb-4">
                     <div>
                         <h3 class="font-black text-lg text-ntpuDark">6. 支援外系</h3>
-                        <p class="text-xs text-gray-500 mt-1">依課程類別呈現支援外系的學分、時數或堂數。</p>
+                        <p class="text-xs text-gray-500 mt-1">依課程類別呈現支援外系的學分、時數或課程數量。</p>
                     </div>
-                    <div class="flex flex-wrap items-center gap-2">
-                        <select id="department-support-year-select" onchange="departmentSectionYearChanged('support')" aria-label="支援外系年度"
+                    <div class="flex flex-wrap items-center gap-2 ml-auto">
+                        <select id="department-support-year-select" onchange="departmentSectionYearChanged('support')" aria-label="支援外系學年度"
                                 class="rounded-lg border-gray-300 text-xs focus:border-ntpuBlue focus:ring-ntpuBlue">
-                            <option value="111">111 年度</option><option value="112">112 年度</option>
-                            <option value="113">113 年度</option><option value="114" selected>114 年度</option>
+                            <option value="111">111 學年度</option><option value="112">112 學年度</option>
+                            <option value="113">113 學年度</option><option value="114" selected>114 學年度</option>
                         </select>
                         <select id="department-support-unit" onchange="updateDepartmentSupportChart()"
-                            class="rounded-lg border-gray-300 text-xs focus:border-ntpuBlue focus:ring-ntpuBlue">
-                        <option value="學分">學分</option><option value="時數">時數</option><option value="堂數">堂數</option>
-                    </select>
+                                class="rounded-lg border-gray-300 text-xs focus:border-ntpuBlue focus:ring-ntpuBlue">
+                            <option value="學分">學分</option><option value="時數">時數</option><option value="堂數">課程數量</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="h-[360px]"><canvas id="department-support-chart"></canvas></div>
+                <div class="relative h-[360px] w-full"><canvas id="department-support-chart"></canvas></div>
             </div>
 
             <!-- 7. 學士班畢業學分 -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-5 md:p-6">
                 <div class="mb-4">
                     <h3 class="font-black text-lg text-ntpuDark">7. 學士班畢業學分</h3>
-                    <p class="text-xs text-gray-500 mt-1">114 年度結構與 111–114 年度總學分趨勢。</p>
+                    <p class="text-xs text-gray-500 mt-1">114 學年度結構與 111–114 學年度總學分趨勢。</p>
                 </div>
                 <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
                     <div>
-                        <h4 class="text-sm font-bold text-gray-700 mb-2">114 年度學分結構</h4>
+                        <h4 class="text-sm font-bold text-gray-700 mb-2">114 學年度學分結構</h4>
                         <div class="h-[390px]"><canvas id="department-graduate-overview-chart"></canvas></div>
                     </div>
                     <div>
@@ -1460,7 +1464,7 @@
                     </select>
                 </div>
                 <div>
-                    <label for="data-explorer-year" class="block text-xs font-bold text-gray-600 mb-1.5">年度</label>
+                    <label for="data-explorer-year" class="block text-xs font-bold text-gray-600 mb-1.5">學年度</label>
                     <select id="data-explorer-year" onchange="updateDataExplorer()"
                             class="w-full rounded-xl border-gray-300 text-sm"></select>
                 </div>
@@ -1639,9 +1643,9 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
-            <div class="rounded-xl bg-blue-50 border border-blue-100 p-5"><div class="text-xs font-bold text-gray-500">總供給時數</div><div id="evaluation-total-supply" class="text-3xl font-black text-ntpuBlue mt-2">0</div></div>
-            <div class="rounded-xl bg-gray-50 border border-gray-200 p-5"><div class="text-xs font-bold text-gray-500">總需求時數</div><div id="evaluation-total-demand" class="text-3xl font-black text-ntpuDark mt-2">0</div></div>
-            <div class="rounded-xl bg-gray-50 border border-gray-200 p-5"><div class="text-xs font-bold text-gray-500">供需差額</div><div id="evaluation-difference" class="text-3xl font-black text-gray-700 mt-2">0</div></div>
+            <div class="rounded-xl bg-blue-50 border border-blue-100 p-5 cursor-help" title="各職級教師的供給時數 × 人數後加總。"><div class="text-xs font-bold text-gray-500">總供給時數 <i class="fa-regular fa-circle-question ml-1 text-gray-400"></i></div><div id="evaluation-total-supply" class="text-3xl font-black text-ntpuBlue mt-2">0</div></div>
+            <div class="rounded-xl bg-gray-50 border border-gray-200 p-5 cursor-help" title="必修、選修、通識、支援外系與彈性調整之學分加總；一學分視為一小時。"><div class="text-xs font-bold text-gray-500">總需求時數 <i class="fa-regular fa-circle-question ml-1 text-gray-400"></i></div><div id="evaluation-total-demand" class="text-3xl font-black text-ntpuDark mt-2">0</div></div>
+            <div class="rounded-xl bg-gray-50 border border-gray-200 p-5 cursor-help" title="供需差額 = 總供給時數 − 總需求時數。"><div class="text-xs font-bold text-gray-500">供需差額 <i class="fa-regular fa-circle-question ml-1 text-gray-400"></i></div><div id="evaluation-difference" class="text-3xl font-black text-gray-700 mt-2">0</div></div>
         </div>
 
         <div id="evaluation-result" class="hidden rounded-xl border px-5 py-4 flex items-center gap-3">
