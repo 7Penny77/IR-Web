@@ -915,7 +915,7 @@ function updateChart(rows) {
                 borderWidth: 2,
                 tension: 0.25,
                 fill: false,
-                maxBarThickness: 42
+                maxBarThickness: 28
             }))
         },
         options: {
