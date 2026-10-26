@@ -959,7 +959,7 @@ function updateChart(rows) {
             return `<span class="inline-flex items-center gap-2 mr-4 mb-2 text-sm text-gray-700"><span class="inline-block w-3 h-3 rounded-sm border border-gray-300" style="background:${escapeHtml(String(color))}"></span><span>${escapeHtml(analysisDisplayText(dataset.label))}</span></span>`;
         }).join('') : '';
         const referenceLegend = Number.isFinite(meanValue) && Number.isFinite(medianValue)
-            ? `<span class="inline-flex items-center gap-2 mr-4 mb-2 text-sm text-gray-700"><span class="inline-block w-5 border-t-2 border-dashed" style="border-color:#0f766e"></span><span>平均數</span></span><span class="inline-flex items-center gap-2 mr-4 mb-2 text-sm text-gray-700"><span class="inline-block w-5 border-t-2 border-dashed" style="border-color:#c2410c"></span><span>中位數</span></span>`
+            ? `<span class="inline-flex items-center gap-2 mr-4 mb-2 text-sm text-gray-700"><span class="inline-block w-5 border-t-2 border-dashed" style="border-color:#0f766e"></span><span>平均數：${escapeHtml(formatAnalysisValue(meanValue))}</span></span><span class="inline-flex items-center gap-2 mr-4 mb-2 text-sm text-gray-700"><span class="inline-block w-5 border-t-2 border-dashed" style="border-color:#c2410c"></span><span>中位數：${escapeHtml(formatAnalysisValue(medianValue))}</span></span>`
             : '';
         const legendItems = datasetLegend + referenceLegend;
         externalLegend.innerHTML = legendItems;
