@@ -40,6 +40,30 @@
             font-weight: 800;
             line-height: 1.35;
         }
+
+        /* 減授評估 KPI：以明確 CSS 控制 hover/focus tooltip，避免 hidden 與 Tailwind 狀態衝突。 */
+        .evaluation-kpi { position: relative; overflow: visible; }
+        .evaluation-help-trigger { display: inline-flex; align-items: center; justify-content: center; cursor: help; }
+        .evaluation-kpi-tooltip {
+            display: none;
+            position: absolute;
+            left: 0.75rem;
+            top: calc(100% + 0.5rem);
+            z-index: 100;
+            width: max-content;
+            max-width: min(20rem, calc(100vw - 3rem));
+            padding: 0.65rem 0.8rem;
+            border-radius: 0.5rem;
+            background: #111827;
+            color: #fff;
+            font-size: 0.75rem;
+            line-height: 1.55;
+            box-shadow: 0 8px 18px rgba(0,0,0,0.18);
+            pointer-events: none;
+            white-space: normal;
+        }
+        .evaluation-kpi:hover .evaluation-kpi-tooltip,
+        .evaluation-kpi:focus-within .evaluation-kpi-tooltip { display: block; }
     
         /* B｜各系所分析：篩選區固定在網站標題列下方。
            --ntpu-header-height 由 JS 依 header 實際高度動態更新。 */
@@ -1360,7 +1384,7 @@
                         </select>
                         <select id="department-course-unit" onchange="updateDepartmentCourseCharts()"
                                 class="rounded-lg border-gray-300 text-xs focus:border-ntpuBlue focus:ring-ntpuBlue">
-                            <option value="學分">學分</option><option value="時數">時數</option><option value="堂數">課程數量</option>
+                            <option value="學分">學分</option><option value="時數">時數</option><option value="堂數">課程數</option>
                         </select>
                         <select id="department-course-stat" onchange="updateDepartmentCourseCharts()"
                                 class="rounded-lg border-gray-300 text-xs focus:border-ntpuBlue focus:ring-ntpuBlue">
@@ -1386,7 +1410,7 @@
                         </select>
                         <select id="department-large-unit" onchange="updateDepartmentLargeChart()"
                                 class="rounded-lg border-gray-300 text-xs focus:border-ntpuBlue focus:ring-ntpuBlue">
-                            <option value="學分">學分</option><option value="時數">時數</option><option value="堂數">課程數量</option>
+                            <option value="學分">學分</option><option value="時數">時數</option><option value="堂數">課程數</option>
                         </select>
                     </div>
                 </div>
@@ -1398,7 +1422,7 @@
                 <div class="flex flex-wrap items-start justify-between gap-3 mb-4">
                     <div>
                         <h3 class="font-black text-lg text-ntpuDark">6. 支援外系</h3>
-                        <p class="text-xs text-gray-500 mt-1">依課程類別呈現支援外系的學分、時數或課程數量。</p>
+                        <p class="text-xs text-gray-500 mt-1">依課程類別呈現支援外系的學分、時數或課程數。</p>
                     </div>
                     <div class="flex flex-wrap items-center gap-2 ml-auto">
                         <select id="department-support-year-select" onchange="departmentSectionYearChanged('support')" aria-label="支援外系學年度"
@@ -1408,7 +1432,7 @@
                         </select>
                         <select id="department-support-unit" onchange="updateDepartmentSupportChart()"
                                 class="rounded-lg border-gray-300 text-xs focus:border-ntpuBlue focus:ring-ntpuBlue">
-                            <option value="學分">學分</option><option value="時數">時數</option><option value="堂數">課程數量</option>
+                            <option value="學分">學分</option><option value="時數">時數</option><option value="堂數">課程數</option>
                         </select>
                     </div>
                 </div>
@@ -1643,9 +1667,21 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
-            <div class="rounded-xl bg-blue-50 border border-blue-100 p-5 cursor-help" title="各職級教師的供給時數 × 人數後加總。"><div class="text-xs font-bold text-gray-500">總供給時數 <i class="fa-regular fa-circle-question ml-1 text-gray-400"></i></div><div id="evaluation-total-supply" class="text-3xl font-black text-ntpuBlue mt-2">0</div></div>
-            <div class="rounded-xl bg-gray-50 border border-gray-200 p-5 cursor-help" title="必修、選修、通識、支援外系與彈性調整之學分加總；一學分視為一小時。"><div class="text-xs font-bold text-gray-500">總需求時數 <i class="fa-regular fa-circle-question ml-1 text-gray-400"></i></div><div id="evaluation-total-demand" class="text-3xl font-black text-ntpuDark mt-2">0</div></div>
-            <div class="rounded-xl bg-gray-50 border border-gray-200 p-5 cursor-help" title="供需差額 = 總供給時數 − 總需求時數。"><div class="text-xs font-bold text-gray-500">供需差額 <i class="fa-regular fa-circle-question ml-1 text-gray-400"></i></div><div id="evaluation-difference" class="text-3xl font-black text-gray-700 mt-2">0</div></div>
+            <div class="evaluation-kpi rounded-xl bg-blue-50 border border-blue-100 p-5">
+                <div class="text-xs font-bold text-gray-500 flex items-center gap-1.5">總供給時數 <button type="button" class="evaluation-help-trigger text-gray-400 hover:text-gray-700 focus:text-gray-700" aria-label="總供給時數說明" aria-describedby="evaluation-supply-help" title="各職級教師的供給時數 × 人數後加總。"><i class="fa-regular fa-circle-question"></i></button></div>
+                <div id="evaluation-total-supply" class="text-3xl font-black text-ntpuBlue mt-2">0</div>
+                <span id="evaluation-supply-help" class="evaluation-kpi-tooltip" role="tooltip">各職級教師的供給時數 × 人數後加總。</span>
+            </div>
+            <div class="evaluation-kpi rounded-xl bg-gray-50 border border-gray-200 p-5">
+                <div class="text-xs font-bold text-gray-500 flex items-center gap-1.5">總需求時數 <button type="button" class="evaluation-help-trigger text-gray-400 hover:text-gray-700 focus:text-gray-700" aria-label="總需求時數說明" aria-describedby="evaluation-demand-help" title="必修、選修、通識、支援外系與彈性調整之學分加總；一學分視為一小時。"><i class="fa-regular fa-circle-question"></i></button></div>
+                <div id="evaluation-total-demand" class="text-3xl font-black text-ntpuDark mt-2">0</div>
+                <span id="evaluation-demand-help" class="evaluation-kpi-tooltip" role="tooltip">必修、選修、通識、支援外系與彈性調整之學分加總；一學分視為一小時。</span>
+            </div>
+            <div class="evaluation-kpi rounded-xl bg-gray-50 border border-gray-200 p-5">
+                <div class="text-xs font-bold text-gray-500 flex items-center gap-1.5">供需差額 <button type="button" class="evaluation-help-trigger text-gray-400 hover:text-gray-700 focus:text-gray-700" aria-label="供需差額說明" aria-describedby="evaluation-difference-help" title="總供給時數 − 總需求時數。"><i class="fa-regular fa-circle-question"></i></button></div>
+                <div id="evaluation-difference" class="text-3xl font-black text-gray-700 mt-2">0</div>
+                <span id="evaluation-difference-help" class="evaluation-kpi-tooltip" role="tooltip">總供給時數 − 總需求時數。</span>
+            </div>
         </div>
 
         <div id="evaluation-result" class="hidden rounded-xl border px-5 py-4 flex items-center gap-3">
