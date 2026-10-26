@@ -166,7 +166,28 @@ function analysisDisplayText(value) {
         .replace(/課程數量/g, '課程數')
         .replace(/堂數/g, '課程數')
         .replace(/課程數量/g, '課程數')
-        .replace(/(^|[^學])年度/g, '$1學年度');
+        // 先統一所有「年度」，再消除可能出現的重複「學」；僅影響顯示文字。
+        .replace(/年度/g, '學年度')
+        .replace(/學學年度/g, '學年度');
+}
+
+function analysisTooltipSeriesLabel(value) {
+    let label = analysisDisplayText(value);
+    // 若資料集標籤本身已帶單位，移除尾端單位，避免 tooltip 顯示「小時 小時」或「人 人」。
+    label = label.replace(/\s*(?:小時|人|學分|門)(?:\s*(?:小時|人|學分|門))*$/g, '').trim();
+    return label;
+}
+
+function analysisDisplayUnit(unit) {
+    return unit === '堂數' || unit === '課程數量' || unit === '課程數' ? '課程數' : analysisDisplayText(unit);
+}
+
+function analysisUnitLabelSuffix(unit) {
+    if (unit === '人數' || unit === '教師人數') return ' 人';
+    if (unit === '學分') return ' 學分';
+    if (unit === '時數') return ' 小時';
+    if (unit === '堂數' || unit === '課程數量' || unit === '課程數') return ' 門';
+    return '';
 }
 
 function analysisFieldLabel(topic, field) {
@@ -695,10 +716,10 @@ function buildChartModel(rows) {
 function analysisUnitSuffix() {
     if (analysisState.stat === 'share' || analysisState.stat === 'custom') return '%';
     if (analysisState.variable === '教師人數' || analysisState.unit === '人數') return ' 人';
-    if (analysisState.topic === 'teachtime' || analysisState.topic === 'salary') return ' 小時';
     if (analysisState.unit === '學分') return ' 學分';
     if (analysisState.unit === '時數') return ' 小時';
-    if (analysisState.unit === '堂數') return ' 門';
+    if (analysisState.unit === '堂數' || analysisState.unit === '課程數量' || analysisState.unit === '課程數') return ' 門';
+    if (analysisState.topic === 'teachtime' || analysisState.topic === 'salary') return ' 小時';
     return '';
 }
 
@@ -914,7 +935,7 @@ function updateChart(rows) {
                 tooltip: {
                     callbacks: {
                         title: items => items.length ? analysisDisplayText(items[0].label) : '',
-                        label: context => `${analysisDisplayText(context.dataset.label)}: ${formatAnalysisValue(context.parsed.y ?? context.parsed.x)}`
+                        label: context => `${analysisTooltipSeriesLabel(context.dataset.label)}: ${formatAnalysisValue(context.parsed.y ?? context.parsed.x)}`
                     }
                 }
             },
@@ -1268,13 +1289,13 @@ function departmentMakeBarChart(canvasId, key, labels, values, options={}) {
                 legend:{display:Boolean(options.label)},
                 tooltip:{
                     callbacks:{
-                        label: ctx => `${ctx.dataset.label ? ctx.dataset.label + ': ' : ''}${departmentFormat(ctx.parsed[options.horizontal ? 'x' : 'y'], options.suffix || '')}`
+                        label: ctx => `${ctx.dataset.label ? analysisTooltipSeriesLabel(ctx.dataset.label) + ': ' : ''}${departmentFormat(ctx.parsed[options.horizontal ? 'x' : 'y'], options.suffix || '')}`
                     }
                 }
             },
             scales:{
-                x:{title:{display:true,text:options.horizontal ? (options.suffixLabel || '數值') : '項目'}},
-                y:{title:{display:true,text:options.horizontal ? '項目' : (options.suffixLabel || '數值')}}
+                x:{title:{display:true,text:options.horizontal ? analysisDisplayUnit(options.suffixLabel || '數值') : '項目'}},
+                y:{title:{display:true,text:options.horizontal ? '項目' : analysisDisplayUnit(options.suffixLabel || '數值')}}
             }
         }
     });
@@ -1294,7 +1315,7 @@ function departmentMakeLineChart(canvasId, key, labels, datasets, suffix=' 小�
             responsive:true, maintainAspectRatio:false,
             interaction:{mode:'index',intersect:false},
             plugins:{
-                tooltip:{callbacks:{label:ctx => `${ctx.dataset.label}: ${departmentFormat(ctx.parsed.y,suffix)}`}},
+                tooltip:{callbacks:{label:ctx => `${analysisTooltipSeriesLabel(ctx.dataset.label)}: ${departmentFormat(ctx.parsed.y,suffix)}`}},
                 legend:{position:'bottom'}
             },
             scales:{
@@ -1530,7 +1551,7 @@ function updateDepartmentCourseCharts() {
     departmentMakeBarChart(
         'department-course-chart','course',
         labels,values,
-        {horizontal:true,label:stat==='average'?'教師平均':'加總',suffix:unit==='學分'?' 學分':unit==='時數'?' 小時':' 堂',suffixLabel:unit}
+        {horizontal:true,label:stat==='average'?'教師平均':'加總',suffix:analysisUnitLabelSuffix(unit),suffixLabel:analysisDisplayUnit(unit)}
     );
 }
 
@@ -1545,7 +1566,7 @@ function updateDepartmentLargeChart() {
     departmentMakeBarChart(
         'department-large-chart','large',
         labels,values,
-        {horizontal:true,label:`大班${unit}`,suffix:unit==='學分'?' 學分':unit==='時數'?' 小時':' 堂',suffixLabel:unit}
+        {horizontal:true,label:`大班${analysisDisplayUnit(unit)}`,suffix:analysisUnitLabelSuffix(unit),suffixLabel:analysisDisplayUnit(unit)}
     );
 }
 
@@ -1560,7 +1581,7 @@ function updateDepartmentSupportChart() {
     departmentMakeBarChart(
         'department-support-chart','support',
         labels,values,
-        {horizontal:true,label:`支援外系${unit}`,suffix:unit==='學分'?' 學分':unit==='時數'?' 小時':' 堂',suffixLabel:unit}
+        {horizontal:true,label:`支援外系${analysisDisplayUnit(unit)}`,suffix:analysisUnitLabelSuffix(unit),suffixLabel:analysisDisplayUnit(unit)}
     );
 }
 
@@ -1663,7 +1684,7 @@ function populateDataExplorerFilters() {
     if (!year || !college || !dept) return;
 
     const years = dataExplorerYears();
-    year.innerHTML = `<option value="">全部</option>` + years.map(y => `<option value="${y}">${y}</option>`).join('');
+    year.innerHTML = `<option value="">全部</option>` + years.map(y => `<option value="${y}">${y} 學年度</option>`).join('');
 
     const colleges = analysisUnique(analysisState.data.affairs.map(r => r.學院));
     college.innerHTML = `<option value="">全部</option>` +
@@ -1802,7 +1823,10 @@ function renderDataExplorerTable() {
                     </button>
                 </td>`;
             }
-            return `<td class="px-3 py-2">${escapeHtml(String(value ?? ''))}</td>`;
+            const displayValue = column === '年度' && value !== undefined && value !== null && value !== ''
+                ? `${String(value)} 學年度`
+                : analysisDisplayText(value ?? '');
+            return `<td class="px-3 py-2">${escapeHtml(displayValue)}</td>`;
         }).join('')}
     </tr>`).join('');
 
