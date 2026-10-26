@@ -834,16 +834,16 @@ const analysisReferenceLinesPlugin = {
                 ordered.forEach(line => line.labelY -= shiftUp);
             }
 
-            // 標籤水平置中於繪圖區，並依資料位置自動排列、保留上下間距。
-            const labelCenterX = (chartArea.left + chartArea.right) / 2;
-            ctx.textAlign = 'center';
+            // 標籤固定放在繪圖區左側，依資料位置自動排列並保留上下間距。
+            const labelX = chartArea.left + 6;
+            ctx.textAlign = 'left';
             ctx.textBaseline = 'middle';
             ordered.forEach(line => {
                 const textWidth = ctx.measureText(line.label).width;
-                ctx.fillStyle = 'rgba(255,255,255,0.92)';
-                ctx.fillRect(labelCenterX - textWidth / 2 - 5, line.labelY - 9, textWidth + 10, 18);
+                ctx.fillStyle = 'rgba(255,255,255,0.94)';
+                ctx.fillRect(labelX - 3, line.labelY - 9, textWidth + 8, 18);
                 ctx.fillStyle = line.color;
-                ctx.fillText(line.label, labelCenterX, line.labelY);
+                ctx.fillText(line.label, labelX, line.labelY);
             });
         }
 
@@ -894,7 +894,8 @@ function updateChart(rows) {
         inner.style.width = `${Math.max(viewportWidth, chartContentWidth)}px`;
         inner.style.minWidth = `${Math.max(viewportWidth, chartContentWidth)}px`;
         inner.style.flex = '0 0 auto';
-        inner.style.height = '100%';
+        // 外層額外保留捲軸高度，讓水平捲軸位於 canvas 與圖例下方，不覆蓋圖表內容。
+        inner.style.height = '520px';
         wrapper.style.overflowX = shouldScroll && chartContentWidth > viewportWidth ? 'auto' : 'hidden';
     }
 
@@ -946,7 +947,13 @@ function updateChart(rows) {
                         display: true,
                         text: isHorizontal ? '數值' : (analysisState.axis === 'year' ? '學年度' : '系所')
                     },
-                    ticks: { callback: value => analysisDisplayText(value) }
+                    ticks: {
+                        callback: value => {
+                            // Chart.js 類別軸的 tick value 是索引，需回傳對應類別標籤，避免顯示 0、1、2…
+                            const category = model.categories[Number(value)];
+                            return analysisDisplayText(category !== undefined ? category : value);
+                        }
+                    }
                 },
                 y: {
                     stacked: false,
@@ -970,7 +977,7 @@ function updateChart(rows) {
         const height = isHorizontal
             ? Math.max(420, model.categories.length * 34)
             : 520;
-        wrapper.style.height = `${height}px`;
+        wrapper.style.height = `${height + 20}px`;
         if (inner) inner.style.height = `${height}px`;
     }
 }
@@ -1273,9 +1280,9 @@ function departmentMakeBarChart(canvasId, key, labels, values, options={}) {
     departmentState.charts[key] = new Chart(canvas.getContext('2d'), {
         type: 'bar',
         data: {
-            labels,
+            labels: labels.map(analysisDisplayText),
             datasets: [{
-                label: options.label || '',
+                label: analysisDisplayText(options.label || ''),
                 data: values,
                 borderWidth: 1,
                 maxBarThickness: 48
@@ -1294,8 +1301,14 @@ function departmentMakeBarChart(canvasId, key, labels, values, options={}) {
                 }
             },
             scales:{
-                x:{title:{display:true,text:options.horizontal ? analysisDisplayUnit(options.suffixLabel || '數值') : '項目'}},
-                y:{title:{display:true,text:options.horizontal ? '項目' : analysisDisplayUnit(options.suffixLabel || '數值')}}
+                x:{
+                    title:{display:true,text:options.horizontal ? analysisDisplayUnit(options.suffixLabel || '數值') : '項目'},
+                    ticks:{callback:value => analysisDisplayText(value)}
+                },
+                y:{
+                    title:{display:true,text:options.horizontal ? '項目' : analysisDisplayUnit(options.suffixLabel || '數值')},
+                    ticks:{callback:value => analysisDisplayText(value)}
+                }
             }
         }
     });
@@ -1308,8 +1321,8 @@ function departmentMakeLineChart(canvasId, key, labels, datasets, suffix=' 小�
 
     departmentState.charts[key] = new Chart(canvas.getContext('2d'), {
         type:'line',
-        data:{labels, datasets:datasets.map(d => ({
-            ...d, borderWidth:2, tension:.25, fill:false, pointRadius:4
+        data:{labels:labels.map(analysisDisplayText), datasets:datasets.map(d => ({
+            ...d, label:analysisDisplayText(d.label), borderWidth:2, tension:.25, fill:false, pointRadius:4
         }))},
         options:{
             responsive:true, maintainAspectRatio:false,
@@ -1319,8 +1332,8 @@ function departmentMakeLineChart(canvasId, key, labels, datasets, suffix=' 小�
                 legend:{position:'bottom'}
             },
             scales:{
-                x:{title:{display:true,text:'學年度'}},
-                y:{title:{display:true,text:suffix.replace(/^ /,'')}}
+                x:{title:{display:true,text:'學年度'},ticks:{callback:value => analysisDisplayText(value)}},
+                y:{title:{display:true,text:suffix.replace(/^ /,'')},ticks:{callback:value => analysisDisplayText(value)}}
             }
         }
     });
@@ -1333,7 +1346,7 @@ function departmentMakeStackedChart(canvasId, key, labels, datasets, average=fal
 
     departmentState.charts[key] = new Chart(canvas.getContext('2d'), {
         type:'bar',
-        data:{labels,datasets:datasets.map(d => ({...d,borderWidth:1}))},
+        data:{labels:labels.map(analysisDisplayText),datasets:datasets.map(d => ({...d,label:analysisDisplayText(d.label),borderWidth:1}))},
         options:{
             responsive:true, maintainAspectRatio:false,
             interaction:{mode:'index', intersect:false},
@@ -1356,13 +1369,13 @@ function departmentMakeStackedChart(canvasId, key, labels, datasets, average=fal
                     mode:'index',
                     intersect:false,
                     callbacks:{
-                        label:ctx => `${ctx.dataset.label}: ${departmentFormat(ctx.parsed.y,' 小時')}`
+                        label:ctx => `${analysisDisplayText(ctx.dataset.label)}: ${departmentFormat(ctx.parsed.y,' 小時')}`
                     }
                 }
             },
             scales:{
-                x:{stacked:true,title:{display:true,text:'學年度'}},
-                y:{stacked:true,title:{display:true,text:average?'每位教師平均時數':'時數'}}
+                x:{stacked:true,title:{display:true,text:'學年度'},ticks:{callback:value => analysisDisplayText(value)}},
+                y:{stacked:true,title:{display:true,text:average?'每位教師平均時數':'時數'},ticks:{callback:value => analysisDisplayText(value)}}
             }
         }
     });
@@ -1551,7 +1564,14 @@ function updateDepartmentCourseCharts() {
     departmentMakeBarChart(
         'department-course-chart','course',
         labels,values,
-        {horizontal:true,label:stat==='average'?'教師平均':'加總',suffix:analysisUnitLabelSuffix(unit),suffixLabel:analysisDisplayUnit(unit)}
+        {
+            horizontal:true,
+            label: unit === '堂數' || unit === '課程數量' || unit === '課程數'
+                ? (stat === 'average' ? '教師平均課程數' : '課程數加總')
+                : (stat === 'average' ? '教師平均' : '加總'),
+            suffix:analysisUnitLabelSuffix(unit),
+            suffixLabel:analysisDisplayUnit(unit)
+        }
     );
 }
 
