@@ -37,12 +37,14 @@ const analysisState = {
 const TOPICS = {
     teachtime: {
         label: '授課時數',
-        units: ['時數'],
+        units: ['時數', '人數'],
         variables: {
             '時數': [
-                ['教師人數', '教師人數'],
                 ['實際授課時數', '實際授課時數'],
                 ['加權授課時數', '加權授課時數']
+            ],
+            '人數': [
+                ['教師人數', '教師人數']
             ]
         }
     },
@@ -62,10 +64,9 @@ const TOPICS = {
     },
     salary: {
         label: '教師鐘點費結構',
-        units: ['時數'],
+        units: ['時數', '人數'],
         variables: {
             '時數': [
-                ['教師人數', '教師人數'],
                 ['正課', '正課'],
                 ['實習', '實習'],
                 ['大班', '大班'],
@@ -76,6 +77,9 @@ const TOPICS = {
                 ['新進教師減授及返還', '新進教師減授及返還'],
                 ['計畫類', '計畫類'],
                 ['指導研究生', '指導研究生']
+            ],
+            '人數': [
+                ['教師人數', '教師人數']
             ]
         }
     },
@@ -124,24 +128,24 @@ const TOPICS = {
                 ['支援時數加總', '支援時數加總']
             ],
             '堂數': [
-                ['必修堂數', '必修堂數'],
-                ['選修堂數', '選修堂數'],
-                ['通識堂數', '通識堂數'],
-                ['大一國文堂數', '大一國文堂數'],
-                ['基礎堂數', '基礎堂數'],
-                ['堂數加總', '堂數加總'],
-                ['必修大班堂數', '必修大班堂數'],
-                ['選修大班堂數', '選修大班堂數'],
-                ['通識大班堂數', '通識大班堂數'],
-                ['大一國文大班堂數', '大一國文大班堂數'],
-                ['基礎大班堂數', '基礎大班堂數'],
-                ['大班堂數加總', '大班堂數加總'],
-                ['必修支援堂數', '必修支援堂數'],
-                ['選修支援堂數', '選修支援堂數'],
-                ['通識支援堂數', '通識支援堂數'],
-                ['大一國文支援堂數', '大一國文支援堂數'],
-                ['基礎支援堂數', '基礎支援堂數'],
-                ['支援堂數加總', '支援堂數加總']
+                ['必修課程數量', '必修堂數'],
+                ['選修課程數量', '選修堂數'],
+                ['通識課程數量', '通識堂數'],
+                ['大一國文課程數量', '大一國文堂數'],
+                ['基礎課程數量', '基礎堂數'],
+                ['課程數量加總', '堂數加總'],
+                ['必修大班課程數量', '必修大班堂數'],
+                ['選修大班課程數量', '選修大班堂數'],
+                ['通識大班課程數量', '通識大班堂數'],
+                ['大一國文大班課程數量', '大一國文大班堂數'],
+                ['基礎大班課程數量', '基礎大班堂數'],
+                ['大班課程數量加總', '大班堂數加總'],
+                ['必修支援課程數量', '必修支援堂數'],
+                ['選修支援課程數量', '選修支援堂數'],
+                ['通識支援課程數量', '通識支援堂數'],
+                ['大一國文支援課程數量', '大一國文支援堂數'],
+                ['基礎支援課程數量', '基礎支援堂數'],
+                ['支援課程數量加總', '支援堂數加總']
             ]
         }
     }
@@ -198,7 +202,7 @@ function analysisNormalizeRows(topic, useSelectedCourseVariant = false, teacherT
             ...row,
             系所: department,
             __college: collegeMap[department] || row.學院 || '',
-            // 全校比較使用新開課資料中的實際年度；各系所分析與檢視資料沿用既有 course.json。
+            // 全校比較使用新開課資料中的實際學年度；各系所分析與檢視資料沿用既有 course.json。
             __year: topic === 'course' && !useSelectedCourseVariant ? 114 : Number(row.年度)
         };
 
@@ -377,7 +381,7 @@ function updateFilterSummary() {
         return `${selected.length} ${unit}`;
     };
 
-    el.textContent = `${label(analysisState.filters.years, allYears, '年度')}・${label(analysisState.filters.colleges, allColleges, '學院')}・${label(analysisState.filters.departments, allDepartments, '系所')}`;
+    el.textContent = `${label(analysisState.filters.years, allYears, '學年度')}・${label(analysisState.filters.colleges, allColleges, '學院')}・${label(analysisState.filters.departments, allDepartments, '系所')}`;
 }
 
 function renderAnalysisControls() {
@@ -403,9 +407,9 @@ function renderAnalysisControls() {
     }
     topicSelect.value = analysisState.topic;
 
+    updateUnitOptions();
     updateVariableOptions();
     updateStatOptions();
-    updateUnitOptions();
     updateAxisOptions();
     updateCustomOptions();
 }
@@ -449,7 +453,10 @@ function updateUnitOptions() {
     if (!select) return;
 
     const units = TOPICS[analysisState.topic].units;
-    select.innerHTML = units.map(unit => `<option value="${escapeHtml(unit)}">${escapeHtml(unit)}</option>`).join('');
+    select.innerHTML = units.map(unit => {
+        const displayUnit = unit === '堂數' ? '課程數量' : unit;
+        return `<option value="${escapeHtml(unit)}">${escapeHtml(displayUnit)}</option>`;
+    }).join('');
 
     if (!units.includes(analysisState.unit)) analysisState.unit = units[0];
     select.value = analysisState.unit;
@@ -460,7 +467,7 @@ function updateAxisOptions() {
     if (!select) return;
     select.innerHTML = `
         <option value="department">系所</option>
-        <option value="year">年度</option>
+        <option value="year">學年度</option>
     `;
     select.value = analysisState.axis;
 }
@@ -611,7 +618,7 @@ function aggregateRows(rows, field, stat, topic, unit) {
         } else if (stat === 'share') {
             const denominatorField = findDenominatorField(topic, unit);
             if (topic === 'teachtime') {
-                // 授課時數的占比：以同一年度、目前篩選範圍內的該變數總量為分母。
+                // 授課時數的占比：以同一學年度、目前篩選範圍內的該變數總量為分母。
                 denominator = rows
                     .filter(row => row.__year === group.年度)
                     .reduce((acc, row) => acc + analysisNumber(row[field]), 0);
@@ -672,10 +679,11 @@ function buildChartModel(rows) {
 
 function analysisUnitSuffix() {
     if (analysisState.stat === 'share' || analysisState.stat === 'custom') return '%';
+    if (analysisState.unit === '人數' || analysisState.variable === '教師人數') return ' 人';
     if (analysisState.topic === 'teachtime' || analysisState.topic === 'salary') return ' 小時';
     if (analysisState.unit === '學分') return ' 學分';
     if (analysisState.unit === '時數') return ' 小時';
-    if (analysisState.unit === '堂數') return ' 堂';
+    if (analysisState.unit === '堂數') return ' 門';
     return '';
 }
 
@@ -733,47 +741,71 @@ const analysisReferenceLinesPlugin = {
         ];
 
         ctx.save();
-        lines.forEach((line, index) => {
-            const pixel = valueScale.getPixelForValue(line.value);
-            if (!Number.isFinite(pixel)) return;
 
-            // 若統計值超出目前座標軸範圍，則不繪製落在圖表外的參考線。
-            if (isHorizontal) {
-                if (pixel < chartArea.left || pixel > chartArea.right) return;
-            } else if (pixel < chartArea.top || pixel > chartArea.bottom) {
-                return;
-            }
+        // 先計算參考線位置，避免平均數與中位數接近時標籤重疊。
+        const visibleLines = lines.map(line => ({
+            ...line,
+            pixel: valueScale.getPixelForValue(line.value)
+        })).filter(line => {
+            if (!Number.isFinite(line.pixel)) return false;
+            return isHorizontal
+                ? line.pixel >= chartArea.left && line.pixel <= chartArea.right
+                : line.pixel >= chartArea.top && line.pixel <= chartArea.bottom;
+        });
 
+        visibleLines.forEach(line => {
             ctx.beginPath();
             ctx.setLineDash([6, 4]);
             ctx.lineWidth = 2;
             ctx.strokeStyle = line.color;
             if (isHorizontal) {
-                ctx.moveTo(pixel, chartArea.top);
-                ctx.lineTo(pixel, chartArea.bottom);
+                ctx.moveTo(line.pixel, chartArea.top);
+                ctx.lineTo(line.pixel, chartArea.bottom);
             } else {
-                ctx.moveTo(chartArea.left, pixel);
-                ctx.lineTo(chartArea.right, pixel);
+                ctx.moveTo(chartArea.left, line.pixel);
+                ctx.lineTo(chartArea.right, line.pixel);
             }
             ctx.stroke();
             ctx.setLineDash([]);
-
-            ctx.font = '12px sans-serif';
-            ctx.fillStyle = line.color;
-            ctx.textBaseline = 'bottom';
-            if (isHorizontal) {
-                ctx.textAlign = 'left';
-                const labelX = Math.min(pixel + 5, chartArea.right - 100);
-                ctx.fillText(line.label, Math.max(chartArea.left + 2, labelX), chartArea.top + 14 + index * 15);
-            } else {
-    // 文字放在圖表右側，與參考線保持相同高度
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-
-    const labelX = chartArea.right + 8 + index * 115;
-    ctx.fillText(line.label, labelX, pixel);
-}
         });
+
+        ctx.font = '12px sans-serif';
+        if (isHorizontal) {
+            // 橫條圖的參考線是垂直線，標籤仍放在圖表上緣。
+            visibleLines.forEach((line, index) => {
+                ctx.fillStyle = line.color;
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'bottom';
+                const labelX = Math.min(line.pixel + 5, chartArea.right - 100);
+                ctx.fillText(line.label, Math.max(chartArea.left + 2, labelX), chartArea.top + 14 + index * 15);
+            });
+        } else {
+            // 直條圖／折線圖：標籤共用同一個 X 座標，並自動維持最小垂直間距。
+            const minGap = 18;
+            const topLimit = chartArea.top + 10;
+            const bottomLimit = chartArea.bottom - 10;
+            const ordered = visibleLines
+                .map(line => ({ ...line, labelY: Math.max(topLimit, Math.min(bottomLimit, line.pixel)) }))
+                .sort((a, b) => a.labelY - b.labelY);
+
+            for (let i = 1; i < ordered.length; i++) {
+                if (ordered[i].labelY - ordered[i - 1].labelY < minGap) {
+                    ordered[i].labelY = ordered[i - 1].labelY + minGap;
+                }
+            }
+            if (ordered.length && ordered[ordered.length - 1].labelY > bottomLimit) {
+                const shiftUp = ordered[ordered.length - 1].labelY - bottomLimit;
+                ordered.forEach(line => line.labelY -= shiftUp);
+            }
+
+            ordered.forEach(line => {
+                ctx.fillStyle = line.color;
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(line.label, chartArea.right + 8, line.labelY);
+            });
+        }
+
         ctx.restore();
     }
 };
@@ -809,6 +841,17 @@ function updateChart(rows) {
         : null;
     const medianValue = analysisMedian(selectedValues);
 
+    const wrapper = document.getElementById('analysis-chart-wrapper');
+    const inner = document.getElementById('analysis-chart-inner');
+    if (wrapper && inner) {
+        const viewportWidth = wrapper.clientWidth || 800;
+        const categoryWidth = model.categories.reduce((total, category) =>
+            total + Math.max(88, String(category).length * 14 + 24), 0);
+        const shouldScroll = !isHorizontal && type === 'bar';
+        inner.style.width = `${shouldScroll ? Math.max(viewportWidth, categoryWidth) : viewportWidth}px`;
+        inner.style.height = '100%';
+    }
+
     analysisState.chart = new Chart(canvas.getContext('2d'), {
         type,
         plugins: [analysisReferenceLinesPlugin],
@@ -825,11 +868,11 @@ function updateChart(rows) {
         options: {
     responsive: true,
     maintainAspectRatio: false,
-    layout: {
-        padding: {
-            right: 220
-        }
-    },
+            layout: {
+                padding: {
+                    right: isHorizontal ? 0 : 220
+                }
+            },
             indexAxis: isHorizontal ? 'y' : 'x',
             interaction: {
                 mode: 'index',
@@ -847,7 +890,7 @@ function updateChart(rows) {
                 },
                 tooltip: {
                     callbacks: {
-                        label: context => `${context.dataset.label}: ${formatAnalysisValue(context.parsed.y ?? context.parsed.x)}`
+                        label: context => `${context.dataset.label}: ${formatAnalysisValue(context.parsed.y ?? context.parsed.x)}${analysisUnitSuffix()}`
                     }
                 }
             },
@@ -856,14 +899,14 @@ function updateChart(rows) {
                     stacked: false,
                     title: {
                         display: true,
-                        text: isHorizontal ? '數值' : (analysisState.axis === 'year' ? '年度' : '系所')
+                        text: isHorizontal ? '數值' : (analysisState.axis === 'year' ? '學年度' : '系所')
                     }
                 },
                 y: {
                     stacked: false,
                     title: {
                         display: true,
-                        text: isHorizontal ? (analysisState.axis === 'year' ? '年度' : '系所') : '數值'
+                        text: isHorizontal ? (analysisState.axis === 'year' ? '學年度' : '系所') : '數值'
                     }
                 }
             },
@@ -876,12 +919,12 @@ function updateChart(rows) {
         }
     });
 
-    const wrapper = document.getElementById('analysis-chart-wrapper');
     if (wrapper) {
         const height = isHorizontal
             ? Math.max(420, model.categories.length * 34)
             : 520;
         wrapper.style.height = `${height}px`;
+        if (inner) inner.style.height = `${height}px`;
     }
 }
 
@@ -892,7 +935,7 @@ function updateAnalysisTable(rows) {
 
     head.innerHTML = `
         <tr>
-            <th class="px-4 py-3">年度</th>
+            <th class="px-4 py-3">學年度</th>
             <th class="px-4 py-3">學院</th>
             <th class="px-4 py-3">系所</th>
             <th class="px-4 py-3 text-right">${escapeHtml(analysisState.stat === 'custom' ? '分析值' : analysisFieldLabel(analysisState.topic, analysisState.variable))}</th>
@@ -936,9 +979,13 @@ function updateAnalysisMeta(rows) {
                     ? '以同一單位的總量計算占比'
                     : '依使用者設定的分子與分母計算比例';
 
-        desc.textContent = `${statText}｜目前 ${rows.length} 筆年度 × 系所資料`;
+        desc.textContent = `${statText}｜目前 ${rows.length} 筆學年度 × 系所資料`;
     }
 }
+
+window.addEventListener('resize', () => {
+    if (analysisState.loaded) updateAnalysis();
+});
 
 function updateAnalysis() {
     if (!analysisState.loaded) return;
@@ -974,7 +1021,7 @@ function downloadAnalysisCSV() {
         analysisState.unit
     );
 
-    const header = ['年度', '學院', '系所', '數值'];
+    const header = ['學年度', '學院', '系所', '數值'];
     const lines = [
         header,
         ...resultRows.map(row => [row.年度, row.學院, row.系所, row.value])
@@ -1126,7 +1173,7 @@ function departmentRowForYear(topic, year) {
     return departmentRows(topic).find(row => Number(row.__year) === targetYear) || null;
 }
 
-// 1、4–6 區塊各自使用年度篩選，不影響其他區塊的年度或篩選設定。
+// 1、4–6 區塊各自使用學年度篩選，不影響其他區塊的學年度或篩選設定。
 window.departmentSectionYearChanged = function departmentSectionYearChanged(section) {
     if (section === 'overview') renderDepartmentOverview();
     else if (section === 'course') updateDepartmentCourseCharts();
@@ -1225,7 +1272,7 @@ function departmentMakeLineChart(canvasId, key, labels, datasets, suffix=' 小�
                 legend:{position:'bottom'}
             },
             scales:{
-                x:{title:{display:true,text:'年度'}},
+                x:{title:{display:true,text:'學年度'}},
                 y:{title:{display:true,text:suffix.replace(/^ /,'')}}
             }
         }
@@ -1267,7 +1314,7 @@ function departmentMakeStackedChart(canvasId, key, labels, datasets, average=fal
                 }
             },
             scales:{
-                x:{stacked:true,title:{display:true,text:'年度'}},
+                x:{stacked:true,title:{display:true,text:'學年度'}},
                 y:{stacked:true,title:{display:true,text:average?'每位教師平均時數':'時數'}}
             }
         }
@@ -1371,13 +1418,13 @@ function renderDepartmentOverview() {
         ['平均授課時數', avg, ' 小時'],
         ['開課學分', departmentNumber(course,'學分加總'), ' 學分'],
         ['開課時數', departmentNumber(course,'時數加總'), ' 小時'],
-        ['開課堂數', departmentNumber(course,'堂數加總'), ' 堂'],
+        ['開課課程數量', departmentNumber(course,'堂數加總'), ' 門'],
         ['大班學分', departmentNumber(course,'大班學分加總'), ' 學分'],
         ['大班時數', departmentNumber(course,'大班時數加總'), ' 小時'],
-        ['大班堂數', departmentNumber(course,'大班堂數加總'), ' 堂'],
+        ['大班課程數量', departmentNumber(course,'大班堂數加總'), ' 門'],
         ['支援外系學分', departmentNumber(course,'支援學分加總'), ' 學分'],
         ['支援外系時數', departmentNumber(course,'支援時數加總'), ' 小時'],
-        ['支援外系堂數', departmentNumber(course,'支援堂數加總'), ' 堂']
+        ['支援外系課程數量', departmentNumber(course,'支援堂數加總'), ' 門']
     ];
 
     target.innerHTML = cards.map(([label,value,suffix]) => `
