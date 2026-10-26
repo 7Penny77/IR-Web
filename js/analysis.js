@@ -763,9 +763,10 @@ function analysisMedian(values) {
 const analysisReferenceLinesPlugin = {
     id: 'analysisReferenceLines',
     afterDraw(chart, args, options) {
-        // 從 chart.options 取值作為保險，避免不同 Chart.js 載入版本傳入的 plugin options 不一致。
-        options = options || chart.options?.plugins?.analysisReferenceLines;
-        if (!options || !Number.isFinite(options.mean) || !Number.isFinite(options.median)) return;
+        // Chart.js 可能傳入空物件作為 options；優先讀取目前圖表設定，避免參考線插件直接 return。
+        const pluginOptions = chart.options?.plugins?.analysisReferenceLines || options;
+        if (!pluginOptions || !Number.isFinite(pluginOptions.mean) || !Number.isFinite(pluginOptions.median)) return;
+        options = pluginOptions;
 
         const chartArea = chart.chartArea;
         const isHorizontal = options.isHorizontal === true;
@@ -929,10 +930,8 @@ function updateChart(rows) {
                 intersect: false
             },
             plugins: {
-                legend: {
-                    display: model.datasets.length > 1,
-                    position: 'bottom'
-                },
+                // 圖例改由畫布外的 HTML 區塊呈現，避免被圖表容器的水平捲軸遮住。
+                legend: { display: false },
                 analysisReferenceLines: {
                     mean: meanValue,
                     median: medianValue,
@@ -954,11 +953,11 @@ function updateChart(rows) {
                         text: isHorizontal ? '數值' : (analysisState.axis === 'year' ? '學年度' : '系所')
                     },
                     ticks: {
-                        callback: function(value) {
-                            // 類別軸使用 scale.getLabelForValue() 取得原始類別，避免顯示索引數字。
+                        callback: function(value, index) {
+                            // 明確從本次圖表的類別陣列取標籤，避免 Chart.js 將類別索引 0、1、2 顯示成數字。
                             if (isHorizontal) return analysisDisplayText(value);
-                            const label = this.getLabelForValue(value);
-                            return analysisDisplayText(label);
+                            const category = model.categories[Number(value)] ?? model.categories[index] ?? this.getLabelForValue(value);
+                            return analysisDisplayText(category);
                         }
                     }
                 },
@@ -970,9 +969,10 @@ function updateChart(rows) {
                         text: isHorizontal ? (analysisState.axis === 'year' ? '學年度' : '系所') : '數值'
                     },
                     ticks: {
-                        callback: function(value) {
+                        callback: function(value, index) {
                             if (!isHorizontal) return analysisDisplayText(value);
-                            return analysisDisplayText(this.getLabelForValue(value));
+                            const category = model.categories[Number(value)] ?? model.categories[index] ?? this.getLabelForValue(value);
+                            return analysisDisplayText(category);
                         }
                     }
                 }
@@ -985,6 +985,18 @@ function updateChart(rows) {
             }
         }
     });
+
+    // 圖例放在水平捲動容器之外，因此無論圖表多寬，圖例都不會被捲軸覆蓋。
+    const externalLegend = document.getElementById('analysis-chart-legend');
+    if (externalLegend) {
+        const legendItems = model.datasets.length > 1 ? model.datasets.map((dataset, index) => {
+            const style = analysisState.chart.getDatasetMeta(index)?.controller?.getStyle?.() || {};
+            const color = Array.isArray(style.backgroundColor) ? style.backgroundColor[0] : (style.backgroundColor || style.borderColor || '#64748b');
+            return `<span class="inline-flex items-center gap-2 mr-4 mb-2 text-sm text-gray-700"><span class="inline-block w-3 h-3 rounded-sm border border-gray-300" style="background:${escapeHtml(String(color))}"></span><span>${escapeHtml(analysisDisplayText(dataset.label))}</span></span>`;
+        }).join('') : '';
+        externalLegend.innerHTML = legendItems;
+        externalLegend.classList.toggle('hidden', !legendItems);
+    }
 
     if (wrapper) {
         const height = isHorizontal
