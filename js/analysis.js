@@ -160,13 +160,22 @@ function analysisNumber(value) {
     return Number.isFinite(n) ? n : 0;
 }
 
+// 僅轉換畫面顯示文字；資料欄位名稱與內部運算鍵值維持原樣。
+function analysisDisplayText(value) {
+    return String(value ?? '')
+        .replace(/課程數量/g, '課程數')
+        .replace(/堂數/g, '課程數')
+        .replace(/課程數量/g, '課程數')
+        .replace(/(^|[^學])年度/g, '$1學年度');
+}
+
 function analysisFieldLabel(topic, field) {
     const unitMap = TOPICS[topic]?.variables || {};
     for (const unit of Object.keys(unitMap)) {
         const hit = unitMap[unit].find(x => x[1] === field);
-        if (hit) return hit[0];
+        if (hit) return analysisDisplayText(hit[0]);
     }
-    return field;
+    return analysisDisplayText(field);
 }
 
 function analysisCollegeMap() {
@@ -422,7 +431,7 @@ function updateVariableOptions() {
     const variables = topic.variables[analysisState.unit] || [];
 
     select.innerHTML = variables.map(([label, field]) =>
-        `<option value="${escapeHtml(field)}">${escapeHtml(label)}</option>`
+        `<option value="${escapeHtml(field)}">${escapeHtml(analysisDisplayText(label))}</option>`
     ).join('');
 
     if (!variables.some(v => v[1] === analysisState.variable)) {
@@ -454,7 +463,7 @@ function updateUnitOptions() {
 
     const units = TOPICS[analysisState.topic].units;
     select.innerHTML = units.map(unit => {
-        const displayUnit = unit === '堂數' ? '課程數量' : unit;
+        const displayUnit = analysisDisplayText(unit);
         return `<option value="${escapeHtml(unit)}">${escapeHtml(displayUnit)}</option>`;
     }).join('');
 
@@ -535,6 +544,12 @@ function analysisUnitChanged() {
 
 function analysisVariableChanged() {
     analysisState.variable = document.getElementById('analysis-variable').value;
+    if (analysisState.variable === '教師人數' && TOPICS[analysisState.topic].units.includes('人數')) {
+        analysisState.unit = '人數';
+        updateUnitOptions();
+        updateVariableOptions();
+        updateCustomOptions();
+    }
     updateAnalysis();
 }
 
@@ -679,7 +694,7 @@ function buildChartModel(rows) {
 
 function analysisUnitSuffix() {
     if (analysisState.stat === 'share' || analysisState.stat === 'custom') return '%';
-    if (analysisState.unit === '人數' || analysisState.variable === '教師人數') return ' 人';
+    if (analysisState.variable === '教師人數' || analysisState.unit === '人數') return ' 人';
     if (analysisState.topic === 'teachtime' || analysisState.topic === 'salary') return ' 小時';
     if (analysisState.unit === '學分') return ' 學分';
     if (analysisState.unit === '時數') return ' 小時';
@@ -798,11 +813,16 @@ const analysisReferenceLinesPlugin = {
                 ordered.forEach(line => line.labelY -= shiftUp);
             }
 
+            // 標籤水平置中於繪圖區，並依資料位置自動排列、保留上下間距。
+            const labelCenterX = (chartArea.left + chartArea.right) / 2;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
             ordered.forEach(line => {
+                const textWidth = ctx.measureText(line.label).width;
+                ctx.fillStyle = 'rgba(255,255,255,0.92)';
+                ctx.fillRect(labelCenterX - textWidth / 2 - 5, line.labelY - 9, textWidth + 10, 18);
                 ctx.fillStyle = line.color;
-                ctx.textAlign = 'left';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(line.label, chartArea.right + 8, line.labelY);
+                ctx.fillText(line.label, labelCenterX, line.labelY);
             });
         }
 
@@ -846,10 +866,15 @@ function updateChart(rows) {
     if (wrapper && inner) {
         const viewportWidth = wrapper.clientWidth || 800;
         const categoryWidth = model.categories.reduce((total, category) =>
-            total + Math.max(88, String(category).length * 14 + 24), 0);
-        const shouldScroll = !isHorizontal && type === 'bar';
-        inner.style.width = `${shouldScroll ? Math.max(viewportWidth, categoryWidth) : viewportWidth}px`;
+            total + Math.max(150, String(category).length * 16 + 42), 0);
+        const shouldScroll = !isHorizontal && (type === 'bar' || type === 'line');
+        // 直條圖／折線圖依類別數配置最小寬度；超出可視區時由外層容器水平捲動。
+        const chartContentWidth = shouldScroll ? categoryWidth + 24 : viewportWidth;
+        inner.style.width = `${Math.max(viewportWidth, chartContentWidth)}px`;
+        inner.style.minWidth = `${Math.max(viewportWidth, chartContentWidth)}px`;
+        inner.style.flex = '0 0 auto';
         inner.style.height = '100%';
+        wrapper.style.overflowX = shouldScroll && chartContentWidth > viewportWidth ? 'auto' : 'hidden';
     }
 
     analysisState.chart = new Chart(canvas.getContext('2d'), {
@@ -869,9 +894,7 @@ function updateChart(rows) {
     responsive: true,
     maintainAspectRatio: false,
             layout: {
-                padding: {
-                    right: isHorizontal ? 0 : 220
-                }
+                padding: { right: 8, left: 8, top: 8 }
             },
             indexAxis: isHorizontal ? 'y' : 'x',
             interaction: {
@@ -890,7 +913,8 @@ function updateChart(rows) {
                 },
                 tooltip: {
                     callbacks: {
-                        label: context => `${context.dataset.label}: ${formatAnalysisValue(context.parsed.y ?? context.parsed.x)}${analysisUnitSuffix()}`
+                        title: items => items.length ? analysisDisplayText(items[0].label) : '',
+                        label: context => `${analysisDisplayText(context.dataset.label)}: ${formatAnalysisValue(context.parsed.y ?? context.parsed.x)}`
                     }
                 }
             },
@@ -900,14 +924,16 @@ function updateChart(rows) {
                     title: {
                         display: true,
                         text: isHorizontal ? '數值' : (analysisState.axis === 'year' ? '學年度' : '系所')
-                    }
+                    },
+                    ticks: { callback: value => analysisDisplayText(value) }
                 },
                 y: {
                     stacked: false,
                     title: {
                         display: true,
                         text: isHorizontal ? (analysisState.axis === 'year' ? '學年度' : '系所') : '數值'
-                    }
+                    },
+                    ticks: { callback: value => analysisDisplayText(value) }
                 }
             },
             onClick: (_, elements) => {
@@ -1418,13 +1444,13 @@ function renderDepartmentOverview() {
         ['平均授課時數', avg, ' 小時'],
         ['開課學分', departmentNumber(course,'學分加總'), ' 學分'],
         ['開課時數', departmentNumber(course,'時數加總'), ' 小時'],
-        ['開課課程數量', departmentNumber(course,'堂數加總'), ' 門'],
+        ['開課課程數', departmentNumber(course,'堂數加總'), ' 門'],
         ['大班學分', departmentNumber(course,'大班學分加總'), ' 學分'],
         ['大班時數', departmentNumber(course,'大班時數加總'), ' 小時'],
-        ['大班課程數量', departmentNumber(course,'大班堂數加總'), ' 門'],
+        ['大班課程數', departmentNumber(course,'大班堂數加總'), ' 門'],
         ['支援外系學分', departmentNumber(course,'支援學分加總'), ' 學分'],
         ['支援外系時數', departmentNumber(course,'支援時數加總'), ' 小時'],
-        ['支援外系課程數量', departmentNumber(course,'支援堂數加總'), ' 門']
+        ['支援外系課程數', departmentNumber(course,'支援堂數加總'), ' 門']
     ];
 
     target.innerHTML = cards.map(([label,value,suffix]) => `
@@ -1684,7 +1710,7 @@ function renderDataExplorerColumns() {
             <label class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-50 cursor-pointer">
                 <input type="checkbox" class="data-column-check" value="${escapeHtml(column)}" ${checked}
                        onchange="dataExplorerColumnsChanged()">
-                <span class="text-xs text-gray-700 break-all">${escapeHtml(column)}</span>
+                <span class="text-xs text-gray-700 break-all">${escapeHtml(analysisDisplayText(column))}</span>
             </label>`;
     }).join('');
 }
@@ -1761,7 +1787,7 @@ function renderDataExplorerTable() {
     head.innerHTML = `<tr>${columns.map(column => {
         const arrow = dataExplorerState.sortField === column
             ? (dataExplorerState.sortDirection === 'asc' ? ' ↑' : ' ↓') : '';
-        return `<th class="px-3 py-3 text-left cursor-pointer hover:bg-blue-800" onclick="dataExplorerSort(${JSON.stringify(column)})">${escapeHtml(column)}${arrow}</th>`;
+        return `<th class="px-3 py-3 text-left cursor-pointer hover:bg-blue-800" onclick="dataExplorerSort(${JSON.stringify(column)})">${escapeHtml(analysisDisplayText(column))}${arrow}</th>`;
     }).join('')}</tr>`;
 
     body.innerHTML = rows.map(row => `<tr class="border-t border-gray-100 hover:bg-gray-50">
@@ -1793,7 +1819,7 @@ function downloadDataExplorerCSV() {
     }
 
     const csv = '\uFEFF' + [
-        columns,
+        columns.map(analysisDisplayText),
         ...rows.map(row => columns.map(c => row[c] ?? ''))
     ].map(row => row.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\r\n');
 
