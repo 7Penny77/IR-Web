@@ -763,6 +763,8 @@ function analysisMedian(values) {
 const analysisReferenceLinesPlugin = {
     id: 'analysisReferenceLines',
     afterDraw(chart, args, options) {
+        // 從 chart.options 取值作為保險，避免不同 Chart.js 載入版本傳入的 plugin options 不一致。
+        options = options || chart.options?.plugins?.analysisReferenceLines;
         if (!options || !Number.isFinite(options.mean) || !Number.isFinite(options.median)) return;
 
         const chartArea = chart.chartArea;
@@ -834,14 +836,15 @@ const analysisReferenceLinesPlugin = {
                 ordered.forEach(line => line.labelY -= shiftUp);
             }
 
-            // 標籤固定放在繪圖區左側，依資料位置自動排列並保留上下間距。
-            const labelX = chartArea.left + 6;
+            // 標籤固定在繪圖區左緣，並以不透明底色覆蓋網格線，避免被柱體或網格干擾。
+            // 先設定同一個左側 X 座標，再依參考線位置排列；距離過近時維持最小上下間距。
+            const labelX = chartArea.left + 5;
             ctx.textAlign = 'left';
             ctx.textBaseline = 'middle';
             ordered.forEach(line => {
                 const textWidth = ctx.measureText(line.label).width;
-                ctx.fillStyle = 'rgba(255,255,255,0.94)';
-                ctx.fillRect(labelX - 3, line.labelY - 9, textWidth + 8, 18);
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(labelX - 4, line.labelY - 10, textWidth + 10, 20);
                 ctx.fillStyle = line.color;
                 ctx.fillText(line.label, labelX, line.labelY);
             });
@@ -894,8 +897,10 @@ function updateChart(rows) {
         inner.style.width = `${Math.max(viewportWidth, chartContentWidth)}px`;
         inner.style.minWidth = `${Math.max(viewportWidth, chartContentWidth)}px`;
         inner.style.flex = '0 0 auto';
-        // 外層額外保留捲軸高度，讓水平捲軸位於 canvas 與圖例下方，不覆蓋圖表內容。
+        // 外層高度大於 canvas，將水平捲軸放在圖表圖例下方的獨立空間。
         inner.style.height = '520px';
+        canvas.style.display = 'block';
+        canvas.style.maxHeight = '520px';
         wrapper.style.overflowX = shouldScroll && chartContentWidth > viewportWidth ? 'auto' : 'hidden';
     }
 
@@ -942,26 +947,34 @@ function updateChart(rows) {
             },
             scales: {
                 x: {
+                    type: isHorizontal ? 'linear' : 'category',
                     stacked: false,
                     title: {
                         display: true,
                         text: isHorizontal ? '數值' : (analysisState.axis === 'year' ? '學年度' : '系所')
                     },
                     ticks: {
-                        callback: value => {
-                            // Chart.js 類別軸的 tick value 是索引，需回傳對應類別標籤，避免顯示 0、1、2…
-                            const category = model.categories[Number(value)];
-                            return analysisDisplayText(category !== undefined ? category : value);
+                        callback: function(value) {
+                            // 類別軸使用 scale.getLabelForValue() 取得原始類別，避免顯示索引數字。
+                            if (isHorizontal) return analysisDisplayText(value);
+                            const label = this.getLabelForValue(value);
+                            return analysisDisplayText(label);
                         }
                     }
                 },
                 y: {
+                    type: isHorizontal ? 'category' : 'linear',
                     stacked: false,
                     title: {
                         display: true,
                         text: isHorizontal ? (analysisState.axis === 'year' ? '學年度' : '系所') : '數值'
                     },
-                    ticks: { callback: value => analysisDisplayText(value) }
+                    ticks: {
+                        callback: function(value) {
+                            if (!isHorizontal) return analysisDisplayText(value);
+                            return analysisDisplayText(this.getLabelForValue(value));
+                        }
+                    }
                 }
             },
             onClick: (_, elements) => {
