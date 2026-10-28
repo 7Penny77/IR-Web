@@ -898,7 +898,10 @@ function updateChart(rows) {
             indexAxis: isHorizontal ? 'y' : 'x',
             interaction: {
                 mode: 'index',
-                intersect: false
+                intersect: false,
+                // 橫條圖以 y 軸（每一列的垂直位置）判斷資料索引，
+                // 避免 tooltip 跟著橫條的水平長度／x 軸位置切換。
+                axis: isHorizontal ? 'y' : 'x'
             },
             plugins: {
                 // 圖例改由畫布外的 HTML 區塊呈現，避免被圖表容器的水平捲軸遮住。
@@ -909,6 +912,10 @@ function updateChart(rows) {
                     isHorizontal
                 },
                 tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    // 橫條圖 tooltip 與 interaction 使用相同的 y 軸定位規則。
+                    axis: isHorizontal ? 'y' : 'x',
                     callbacks: {
                         title: items => items.length ? analysisDisplayText(items[0].label) : '',
                         label: context => `${analysisTooltipSeriesLabel(context.dataset.label)}: ${formatAnalysisValue(isHorizontal ? context.parsed.x : context.parsed.y)}`
