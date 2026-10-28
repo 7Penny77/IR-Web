@@ -856,11 +856,11 @@ function updateChart(rows) {
     const inner = document.getElementById('analysis-chart-inner');
     const shouldScrollX = !isHorizontal && (type === 'bar' || type === 'line');
     const chartViewportHeight = 545;
-    const chartContentHeight = isHorizontal ? Math.max(420, model.categories.length * 70) : 520;
+    const chartContentHeight = isHorizontal ? Math.max(420, model.categories.length * 34) : 520;
     if (wrapper && inner) {
         const viewportWidth = wrapper.clientWidth || 800;
         const categoryWidth = model.categories.reduce((total, category) =>
-            total + Math.max(120, String(category).length * 16 + 42), 0);
+            total + Math.max(150, String(category).length * 16 + 42), 0);
         // 直條圖／折線圖依類別數配置寬度；橫條圖則固定可視高度，內容超出時垂直捲動。
         const chartContentWidth = shouldScrollX ? categoryWidth + 24 : viewportWidth;
         inner.style.width = `${Math.max(viewportWidth, chartContentWidth)}px`;
@@ -1348,53 +1348,124 @@ function departmentMakeLineChart(canvasId, key, labels, datasets, suffix=' 小�
     });
 }
 
-function departmentMakeStackedChart(canvasId, key, labels, datasets, average=false) {
+function departmentMakeStackedChart(canvasId, key, labels, datasets, average = false) {
     const canvas = document.getElementById(canvasId);
     if (!canvas || !window.Chart) return;
     departmentChartDestroy(key);
 
     departmentState.charts[key] = new Chart(canvas.getContext('2d'), {
-        type:'bar',
-        data:{labels:labels.map(analysisDisplayText),datasets:datasets.map(d => ({...d,label:analysisDisplayText(d.label),borderWidth:1}))},
-        options:{
-            responsive:true, maintainAspectRatio:false,
-            interaction:{mode:'index', intersect:false},
-            plugins:{
-                legend:{
-                    position:'bottom',
-                    labels:{
+        type: 'bar',
+        data: {
+            labels: labels.map(analysisDisplayText),
+            datasets: datasets.map(d => ({
+                ...d,
+                label: analysisDisplayText(d.label),
+                borderWidth: 1
+            }))
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        boxWidth: 14,
+                        boxHeight: 14,
+                        padding: 12,
+                        // 不使用 Chart.js 預設的 hidden 樣式，避免隱藏系列時文字出現刪除線。
+                        // 圓形圖例仍沿用原本的顏色規則。
                         generateLabels: chart => chart.data.datasets.map((dataset, index) => ({
                             text: dataset.label,
                             datasetIndex: index,
-                            hidden: !chart.isDatasetVisible(index),
+                            hidden: false,
                             fillStyle: DEPARTMENT_SALARY_COLORS[index] || '#64748b',
                             strokeStyle: DEPARTMENT_SALARY_COLORS[index] || '#64748b',
-                            lineWidth: 1,
-                            fontColor: '#374151'
+                            lineWidth: 1
                         }))
+                    },
+                    // 保留原本的點選切換行為，但不以文字刪除線表示隱藏狀態。
+                    onClick: (event, legendItem, legend) => {
+                        const chart = legend.chart;
+                        const index = legendItem.datasetIndex;
+                        if (index === undefined) return;
+                        chart.setDatasetVisibility(index, !chart.isDatasetVisible(index));
+                        chart.update();
                     }
                 },
-                tooltip:{
-                    mode:'index',
-                    intersect:false,
-                    callbacks:{
-                        label:ctx => `${analysisDisplayText(ctx.dataset.label)}: ${departmentFormat(ctx.parsed.y,' 小時')}`
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    callbacks: {
+                        label: ctx => `${analysisDisplayText(ctx.dataset.label)}: ${departmentFormat(ctx.parsed.y, ' 小時')}`
                     }
                 }
             },
-            scales:{
-                x:{
-                    type:'category', stacked:true,
-                    title:{display:true,text:'學年度'},
-                    ticks:{callback:function(value){ return analysisDisplayText(this.getLabelForValue(value)); }}
+            scales: {
+                x: {
+                    type: 'category',
+                    stacked: true,
+                    title: { display: true, text: '學年度' },
+                    ticks: {
+                        callback: function(value) {
+                            return analysisDisplayText(this.getLabelForValue(value));
+                        }
+                    }
                 },
-                y:{
-                    type:'linear', stacked:true,
-                    title:{display:true,text:average?'每位教師平均時數':'時數'},
-                    ticks:{callback:function(value){ return analysisDisplayText(value); }}
+                y: {
+                    type: 'linear',
+                    stacked: true,
+                    title: { display: true, text: average ? '每位教師平均時數' : '時數' },
+                    ticks: {
+                        callback: function(value) {
+                            return analysisDisplayText(value);
+                        }
+                    }
                 }
             }
-        }
+        },
+        // 在圖表繪製後，於可見系列的圓形圖例上繪製白色勾選符號。
+        plugins: [{
+            id: 'departmentLegendCheckmark',
+            afterDraw(chart) {
+                const legend = chart.legend;
+                if (!legend || !legend.legendItems || !legend.legendHitBoxes) return;
+
+                const ctx = chart.ctx;
+                const labelsOptions = legend.options.labels || {};
+                const boxWidth = labelsOptions.boxWidth || 14;
+                const boxHeight = labelsOptions.boxHeight || 14;
+                const boxSize = Math.min(boxWidth, boxHeight);
+
+                ctx.save();
+                legend.legendItems.forEach((item, index) => {
+                    const datasetIndex = item.datasetIndex;
+                    if (datasetIndex === undefined || !chart.isDatasetVisible(datasetIndex)) return;
+
+                    const hitBox = legend.legendHitBoxes[index];
+                    if (!hitBox) return;
+
+                    // Chart.js 的圖例 hitbox 從每個項目的左上角開始；圓形位於項目開頭。
+                    const x = hitBox.left + boxSize / 2;
+                    const y = hitBox.top + hitBox.height / 2;
+                    const radius = boxSize * 0.34;
+
+                    ctx.beginPath();
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 1.8;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.moveTo(x - radius * 0.75, y);
+                    ctx.lineTo(x - radius * 0.15, y + radius * 0.6);
+                    ctx.lineTo(x + radius * 0.85, y - radius * 0.65);
+                    ctx.stroke();
+                });
+                ctx.restore();
+            }
+        }]
     });
 }
 
@@ -1648,7 +1719,8 @@ function renderDepartmentGraduate() {
 
     departmentMakeLineChart(
         'department-graduate-trend-chart','graduateTrend',
-        rows.map(r => r.__year),
+        // 明確將右圖橫軸類別標籤格式化為學年度，避免只顯示 111、112 等數字。
+        rows.map(r => `${r.__year} 學年度`),
         [{label:'總學分數',data:rows.map(r => graduateField(r,'總學分數'))}],
         ' 學分'
     );
