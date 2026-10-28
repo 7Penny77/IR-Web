@@ -1344,7 +1344,7 @@
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-5 md:p-6">
                 <div class="mb-4">
                     <h3 class="font-black text-lg text-ntpuDark">2. 歷年授課時數</h3>
-                    <p class="text-xs text-gray-500 mt-1">111–114 學年度，三項指標以系所資料呈現。</p>
+                    <p class="text-xs text-gray-500 mt-1">加權授課時數：大班、外語和USR授課時數加權計算而得。</p>
                 </div>
                 <div class="h-[420px]">
                     <canvas id="department-teachtime-chart"></canvas>
@@ -1375,7 +1375,7 @@
                 <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
                     <div>
                         <h3 class="font-black text-lg text-ntpuDark">4. 開課結構</h3>
-                        <p class="text-xs text-gray-500 mt-1">不含大班、支援外系的獨立欄位，依資料集原始分類呈現。</p>
+                        <p class="text-xs text-gray-500 mt-1">可切換加總或平均（平均指的是每位教師平均）。</p>
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
                         <select id="department-course-year-select" onchange="departmentSectionYearChanged('course')" aria-label="開課結構學年度"
@@ -1423,7 +1423,7 @@
                 <div class="flex flex-wrap items-start justify-between gap-3 mb-4">
                     <div>
                         <h3 class="font-black text-lg text-ntpuDark">6. 支援外系</h3>
-                        <p class="text-xs text-gray-500 mt-1">依課程類別呈現支援外系的學分、時數或課程數。</p>
+                        <p class="text-xs text-gray-500 mt-1">依必修、選修、通識、大一國文、基礎分類。</p>
                     </div>
                     <div class="flex flex-wrap items-center gap-2 ml-auto">
                         <select id="department-support-year-select" onchange="departmentSectionYearChanged('support')" aria-label="支援外系學年度"
