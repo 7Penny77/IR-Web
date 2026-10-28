@@ -696,11 +696,18 @@ function buildChartModel(rows) {
         ? analysisUnique(rows.map(r => r.系所))
         : analysisUnique(rows.map(r => r.年度)).sort((a, b) => Number(a) - Number(b));
 
+    // 使用正規化後的字串鍵值對應類別與系列，避免年度為 number/string 時
+    // 因嚴格相等判斷失敗而讓橫條圖／長條圖出現空值或錯誤對應。
+    const rowByPair = new Map();
+    rows.forEach(row => {
+        const category = axis === 'year' ? row.年度 : row.系所;
+        const group = axis === 'year' ? row.系所 : row.年度;
+        rowByPair.set(`${String(category)}|||${String(group)}`, row);
+    });
+
     const datasets = groups.map(group => {
         const data = categories.map(category => {
-            const row = rows.find(r =>
-                (axis === 'year' ? r.年度 === category && r.系所 === group : r.系所 === category && r.年度 === group)
-            );
+            const row = rowByPair.get(`${String(category)}|||${String(group)}`);
             return row ? row.value : null;
         });
 
@@ -879,7 +886,7 @@ function updateChart(rows) {
                 borderWidth: 2,
                 tension: 0.25,
                 fill: false,
-                maxBarThickness: 28
+                maxBarThickness: 20
             }))
         },
         options: {
@@ -904,7 +911,7 @@ function updateChart(rows) {
                 tooltip: {
                     callbacks: {
                         title: items => items.length ? analysisDisplayText(items[0].label) : '',
-                        label: context => `${analysisTooltipSeriesLabel(context.dataset.label)}: ${formatAnalysisValue(context.parsed.y ?? context.parsed.x)}`
+                        label: context => `${analysisTooltipSeriesLabel(context.dataset.label)}: ${formatAnalysisValue(isHorizontal ? context.parsed.x : context.parsed.y)}`
                     }
                 }
             },
@@ -917,11 +924,10 @@ function updateChart(rows) {
                         text: isHorizontal ? '數值' : (analysisState.axis === 'year' ? '學年度' : '系所')
                     },
                     ticks: {
-                        callback: function(value, index) {
-                            // 明確從本次圖表的類別陣列取標籤，避免 Chart.js 將類別索引 0、1、2 顯示成數字。
+                        callback: function(value) {
+                            // category scale 的 value 是內部索引；必須透過 scale 取得真正類別標籤。
                             if (isHorizontal) return analysisDisplayText(value);
-                            const category = model.categories[Number(value)] ?? model.categories[index] ?? this.getLabelForValue(value);
-                            return analysisDisplayText(category);
+                            return analysisDisplayText(this.getLabelForValue(value));
                         }
                     }
                 },
@@ -933,10 +939,10 @@ function updateChart(rows) {
                         text: isHorizontal ? (analysisState.axis === 'year' ? '學年度' : '系所') : '數值'
                     },
                     ticks: {
-                        callback: function(value, index) {
+                        callback: function(value) {
                             if (!isHorizontal) return analysisDisplayText(value);
-                            const category = model.categories[Number(value)] ?? model.categories[index] ?? this.getLabelForValue(value);
-                            return analysisDisplayText(category);
+                            // 橫條圖的 y 軸是 category scale，使用 scale label 而不是索引數字。
+                            return analysisDisplayText(this.getLabelForValue(value));
                         }
                     }
                 }
@@ -1287,12 +1293,22 @@ function departmentMakeBarChart(canvasId, key, labels, values, options={}) {
             },
             scales:{
                 x:{
+                    type: options.horizontal ? 'linear' : 'category',
                     title:{display:true,text:options.horizontal ? analysisDisplayUnit(options.suffixLabel || '數值') : '項目'},
-                    ticks:{callback:value => analysisDisplayText(value)}
+                    ticks:{
+                        callback:function(value) {
+                            return analysisDisplayText(options.horizontal ? value : this.getLabelForValue(value));
+                        }
+                    }
                 },
                 y:{
+                    type: options.horizontal ? 'category' : 'linear',
                     title:{display:true,text:options.horizontal ? '項目' : analysisDisplayUnit(options.suffixLabel || '數值')},
-                    ticks:{callback:value => analysisDisplayText(value)}
+                    ticks:{
+                        callback:function(value) {
+                            return analysisDisplayText(options.horizontal ? this.getLabelForValue(value) : value);
+                        }
+                    }
                 }
             }
         }
@@ -1317,8 +1333,16 @@ function departmentMakeLineChart(canvasId, key, labels, datasets, suffix=' 小�
                 legend:{position:'bottom'}
             },
             scales:{
-                x:{title:{display:true,text:'學年度'},ticks:{callback:value => analysisDisplayText(value)}},
-                y:{title:{display:true,text:suffix.replace(/^ /,'')},ticks:{callback:value => analysisDisplayText(value)}}
+                x:{
+                    type:'category',
+                    title:{display:true,text:'學年度'},
+                    ticks:{callback:function(value){ return analysisDisplayText(this.getLabelForValue(value)); }}
+                },
+                y:{
+                    type:'linear',
+                    title:{display:true,text:suffix.replace(/^ /,'')},
+                    ticks:{callback:function(value){ return analysisDisplayText(value); }}
+                }
             }
         }
     });
@@ -1359,8 +1383,16 @@ function departmentMakeStackedChart(canvasId, key, labels, datasets, average=fal
                 }
             },
             scales:{
-                x:{stacked:true,title:{display:true,text:'學年度'},ticks:{callback:value => analysisDisplayText(value)}},
-                y:{stacked:true,title:{display:true,text:average?'每位教師平均時數':'時數'},ticks:{callback:value => analysisDisplayText(value)}}
+                x:{
+                    type:'category', stacked:true,
+                    title:{display:true,text:'學年度'},
+                    ticks:{callback:function(value){ return analysisDisplayText(this.getLabelForValue(value)); }}
+                },
+                y:{
+                    type:'linear', stacked:true,
+                    title:{display:true,text:average?'每位教師平均時數':'時數'},
+                    ticks:{callback:function(value){ return analysisDisplayText(value); }}
+                }
             }
         }
     });
