@@ -856,11 +856,11 @@ function updateChart(rows) {
     const inner = document.getElementById('analysis-chart-inner');
     const shouldScrollX = !isHorizontal && (type === 'bar' || type === 'line');
     const chartViewportHeight = 545;
-    const chartContentHeight = isHorizontal ? Math.max(420, model.categories.length * 34) : 520;
+    const chartContentHeight = isHorizontal ? Math.max(420, model.categories.length * 70) : 520;
     if (wrapper && inner) {
         const viewportWidth = wrapper.clientWidth || 800;
         const categoryWidth = model.categories.reduce((total, category) =>
-            total + Math.max(150, String(category).length * 16 + 42), 0);
+            total + Math.max(120, String(category).length * 16 + 42), 0);
         // 直條圖／折線圖依類別數配置寬度；橫條圖則固定可視高度，內容超出時垂直捲動。
         const chartContentWidth = shouldScrollX ? categoryWidth + 24 : viewportWidth;
         inner.style.width = `${Math.max(viewportWidth, chartContentWidth)}px`;
