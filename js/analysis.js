@@ -14,7 +14,8 @@ const analysisState = {
         course: [],
         courseFulltime: [],
         courseAdjunctExclCoteach: [],
-        courseAdjunctInclCoteach: []
+        courseAdjunctInclCoteach: [],
+        adjunctSalary: []
     },
     loaded: false,
     teacherType: 'fulltime',
@@ -151,6 +152,25 @@ const TOPICS = {
     }
 };
 
+const ADJUNCT_SALARY_FIELDS = [
+    '正課', '實習', '大班', '遠距', '外語', '代課'
+];
+const ADJUNCT_SALARY_COLORS = ['#1f5798', '#16a34a', '#f7e400', '#8b5cf6', '#0891b2', '#f28500'];
+
+function analysisIsAdjunctIncl(teacherType = analysisState.teacherType) {
+    return teacherType === 'adjunct_incl';
+}
+
+function analysisTopicVariables(topicKey, teacherType = analysisState.teacherType) {
+    if (topicKey === 'salary' && analysisIsAdjunctIncl(teacherType)) {
+        return {
+            '時數': ADJUNCT_SALARY_FIELDS.map(field => [field, field]),
+            '人數': [['教師人數', '教師人數'], ['實支教師數', '實支教師數']]
+        };
+    }
+    return TOPICS[topicKey]?.variables || {};
+}
+
 function analysisUnique(values) {
     return [...new Set(values.filter(v => v !== undefined && v !== null && v !== ''))];
 }
@@ -191,7 +211,7 @@ function analysisUnitLabelSuffix(unit) {
 }
 
 function analysisFieldLabel(topic, field) {
-    const unitMap = TOPICS[topic]?.variables || {};
+    const unitMap = analysisTopicVariables(topic);
     for (const unit of Object.keys(unitMap)) {
         const hit = unitMap[unit].find(x => x[1] === field);
         if (hit) return analysisDisplayText(hit[0]);
@@ -213,7 +233,10 @@ function analysisCollegeMap() {
  * 前端仍使用同一套學院篩選。
  */
 function analysisNormalizeRows(topic, useSelectedCourseVariant = false, teacherTypeOverride = null) {
-    let rows = analysisState.data[topic] || [];
+    const effectiveTeacherType = teacherTypeOverride || analysisState.teacherType;
+    let rows = topic === 'salary' && analysisIsAdjunctIncl(effectiveTeacherType)
+        ? (analysisState.data.adjunctSalary || [])
+        : (analysisState.data[topic] || []);
     if (topic === 'course' && useSelectedCourseVariant) {
         const courseKey = {
             fulltime: 'courseFulltime',
@@ -233,7 +256,9 @@ function analysisNormalizeRows(topic, useSelectedCourseVariant = false, teacherT
             系所: department,
             __college: collegeMap[department] || row.學院 || '',
             // 全校比較使用新開課資料中的實際學年度；各系所分析與檢視資料沿用既有 course.json。
-            __year: topic === 'course' && !useSelectedCourseVariant ? 114 : Number(row.年度)
+            __year: topic === 'course' && !useSelectedCourseVariant
+                ? 114
+                : Number(topic === 'salary' && analysisIsAdjunctIncl(effectiveTeacherType) ? row.學年度 : row.年度)
         };
 
         return normalized;
@@ -251,7 +276,8 @@ async function loadAnalysisData() {
         course: 'course.json',
         courseFulltime: 'course_fulltime.json',
         courseAdjunctExclCoteach: 'course_adjunct_excl_coteach.json',
-        courseAdjunctInclCoteach: 'course_adjunct_incl_coteach.json'
+        courseAdjunctInclCoteach: 'course_adjunct_incl_coteach.json',
+        adjunctSalary: 'adjunct_salary.json'
     };
 
     try {
@@ -420,7 +446,9 @@ function renderAnalysisControls() {
 
     const allowedTopics = analysisState.teacherType === 'fulltime'
         ? Object.entries(TOPICS)
-        : Object.entries(TOPICS).filter(([key]) => key === 'graduate' || key === 'course');
+        : analysisIsAdjunctIncl()
+            ? Object.entries(TOPICS).filter(([key]) => key === 'salary' || key === 'graduate' || key === 'course')
+            : Object.entries(TOPICS).filter(([key]) => key === 'graduate' || key === 'course');
     topicSelect.innerHTML = allowedTopics.map(([key, topic]) => {
         const label = key === 'course'
             ? ({
@@ -433,7 +461,9 @@ function renderAnalysisControls() {
     }).join('');
 
     if (!allowedTopics.some(([key]) => key === analysisState.topic)) {
-        analysisState.topic = analysisState.teacherType === 'fulltime' ? 'teachtime' : 'course';
+        analysisState.topic = analysisState.teacherType === 'fulltime'
+            ? 'teachtime'
+            : analysisIsAdjunctIncl() ? 'salary' : 'course';
     }
     topicSelect.value = analysisState.topic;
 
@@ -448,8 +478,7 @@ function updateVariableOptions() {
     const select = document.getElementById('analysis-variable');
     if (!select) return;
 
-    const topic = TOPICS[analysisState.topic];
-    const variables = topic.variables[analysisState.unit] || [];
+    const variables = analysisTopicVariables(analysisState.topic)[analysisState.unit] || [];
 
     select.innerHTML = variables.map(([label, field]) =>
         `<option value="${escapeHtml(field)}">${escapeHtml(analysisDisplayText(label))}</option>`
@@ -465,13 +494,22 @@ function updateStatOptions() {
     const select = document.getElementById('analysis-stat');
     if (!select) return;
 
-    const options = [
-        ['sum', '加總'],
-        ['average', '平均'],
-        ['share', '占比'],
-        ['custom', '自定義']
-    ];
+    const options = analysisState.topic === 'salary' && analysisIsAdjunctIncl()
+        ? [
+            ['sum', '加總'],
+            ['average', '平均（教師人數）'],
+            ['average_paid', '平均（實支教師數）'],
+            ['share', '占比'],
+            ['custom', '自定義']
+        ]
+        : [
+            ['sum', '加總'],
+            ['average', '平均'],
+            ['share', '占比'],
+            ['custom', '自定義']
+        ];
 
+    if (!options.some(([value]) => value === analysisState.stat)) analysisState.stat = 'sum';
     select.innerHTML = options.map(([value, label]) =>
         `<option value="${value}">${label}</option>`
     ).join('');
@@ -508,13 +546,16 @@ function updateCustomOptions() {
     if (!num || !den) return;
 
     const topic = TOPICS[analysisState.topic];
-    let fields = analysisUnique((topic.variables[analysisState.unit] || []).map(v => v[1]));
+    let fields = analysisUnique((analysisTopicVariables(analysisState.topic)[analysisState.unit] || []).map(v => v[1]));
 
     // 自定義保留常用分母：教師人數；salary 另外保留鐘點時數。
     if (analysisState.topic === 'teachtime' || analysisState.topic === 'salary' || analysisState.topic === 'course') {
         fields = analysisUnique([...fields, '教師人數']);
     }
-    if (analysisState.topic === 'salary') fields = analysisUnique([...fields, '鐘點時數']);
+    if (analysisState.topic === 'salary' && analysisIsAdjunctIncl()) {
+        fields = analysisUnique([...fields, '實支教師數']);
+    }
+    if (analysisState.topic === 'salary' && !analysisIsAdjunctIncl()) fields = analysisUnique([...fields, '鐘點時數']);
 
     const options = fields.map(field =>
         `<option value="${escapeHtml(field)}">${escapeHtml(analysisFieldLabel(analysisState.topic, field))}</option>`
@@ -565,7 +606,8 @@ function analysisUnitChanged() {
 
 function analysisVariableChanged() {
     analysisState.variable = document.getElementById('analysis-variable').value;
-    if (analysisState.variable === '教師人數' && TOPICS[analysisState.topic].units.includes('人數')) {
+    if ((analysisState.variable === '教師人數' || analysisState.variable === '實支教師數') &&
+        TOPICS[analysisState.topic].units.includes('人數')) {
         analysisState.unit = '人數';
         updateUnitOptions();
         updateVariableOptions();
@@ -648,8 +690,9 @@ function aggregateRows(rows, field, stat, topic, unit) {
         let value = sum;
         let denominator = null;
 
-        if (stat === 'average') {
-            denominator = sourceRows.reduce((acc, row) => acc + analysisNumber(row['教師人數']), 0);
+        if (stat === 'average' || stat === 'average_paid') {
+            const denominatorField = stat === 'average_paid' ? '實支教師數' : '教師人數';
+            denominator = sourceRows.reduce((acc, row) => acc + analysisNumber(row[denominatorField]), 0);
             value = denominator ? sum / denominator : null;
         } else if (stat === 'share') {
             const denominatorField = findDenominatorField(topic, unit);
@@ -659,8 +702,11 @@ function aggregateRows(rows, field, stat, topic, unit) {
                     .filter(row => row.__year === group.年度)
                     .reduce((acc, row) => acc + analysisNumber(row[field]), 0);
             } else if (topic === 'salary') {
+                const shareFields = analysisIsAdjunctIncl()
+                    ? ADJUNCT_SALARY_FIELDS
+                    : SALARY_SHARE_FIELDS;
                 denominator = sourceRows.reduce((acc, row) =>
-                    acc + SALARY_SHARE_FIELDS.reduce((inner, f) => inner + analysisNumber(row[f]), 0), 0);
+                    acc + shareFields.reduce((inner, f) => inner + analysisNumber(row[f]), 0), 0);
             } else {
                 denominator = sourceRows.reduce((acc, row) => acc + analysisNumber(row[denominatorField]), 0);
             }
@@ -722,7 +768,7 @@ function buildChartModel(rows) {
 
 function analysisUnitSuffix() {
     if (analysisState.stat === 'share' || analysisState.stat === 'custom') return '%';
-    if (analysisState.variable === '教師人數' || analysisState.unit === '人數') return ' 人';
+    if (analysisState.variable === '教師人數' || analysisState.variable === '實支教師數' || analysisState.unit === '人數') return ' 人';
     if (analysisState.unit === '學分') return ' 學分';
     if (analysisState.unit === '時數') return ' 小時';
     if (analysisState.unit === '堂數' || analysisState.unit === '課程數量' || analysisState.unit === '課程數') return ' 門';
@@ -752,7 +798,8 @@ function analysisTitle() {
     }
     return `${topic}｜${analysisFieldLabel(analysisState.topic, analysisState.variable)}｜${{
         sum: '加總',
-        average: '平均',
+        average: analysisState.topic === 'salary' && analysisIsAdjunctIncl() ? '平均（教師人數）' : '平均',
+        average_paid: '平均（實支教師數）',
         share: '占比'
     }[analysisState.stat]}`;
 }
@@ -899,8 +946,7 @@ function updateChart(rows) {
             interaction: {
                 mode: 'index',
                 intersect: false,
-                // 橫條圖以 y 軸（每一列的垂直位置）判斷資料索引，
-                // 避免 tooltip 跟著橫條的水平長度／x 軸位置切換。
+                // 橫條圖以 y 軸（每一列的垂直位置）判斷資料索引。
                 axis: isHorizontal ? 'y' : 'x'
             },
             plugins: {
@@ -914,7 +960,6 @@ function updateChart(rows) {
                 tooltip: {
                     mode: 'index',
                     intersect: false,
-                    // 橫條圖 tooltip 與 interaction 使用相同的 y 軸定位規則。
                     axis: isHorizontal ? 'y' : 'x',
                     callbacks: {
                         title: items => items.length ? analysisDisplayText(items[0].label) : '',
@@ -1027,9 +1072,11 @@ function updateAnalysisMeta(rows) {
             ? '加總'
             : analysisState.stat === 'average'
                 ? '以教師人數為分母計算平均'
-                : analysisState.stat === 'share'
-                    ? '以同一單位的總量計算占比'
-                    : '依使用者設定的分子與分母計算比例';
+                : analysisState.stat === 'average_paid'
+                    ? '以實支教師數為分母計算平均'
+                    : analysisState.stat === 'share'
+                        ? '以同一單位的總量計算占比'
+                        : '依使用者設定的分子與分母計算比例';
 
         desc.textContent = `${statText}｜目前 ${rows.length} 筆學年度 × 系所資料`;
     }
@@ -1191,8 +1238,9 @@ function departmentRowDepartment(row) {
 }
 
 function departmentRows(topic) {
-    // 兼任資料目前只有開課現況與畢業學分；授課時數、鐘點費不應套用專任資料。
-    if (departmentState.teacherType !== 'fulltime' && (topic === 'teachtime' || topic === 'salary')) {
+    // 兼任（包含合授）的鐘點費結構改用獨立實支資料；其他兼任類別維持原有無資料設定。
+    if (departmentState.teacherType !== 'fulltime' &&
+        (topic === 'teachtime' || (topic === 'salary' && !analysisIsAdjunctIncl(departmentState.teacherType)))) {
         return [];
     }
     return analysisNormalizeRows(topic, topic === 'course', departmentState.teacherType).filter(row =>
@@ -1322,7 +1370,7 @@ function departmentMakeBarChart(canvasId, key, labels, values, options={}) {
     });
 }
 
-function departmentMakeLineChart(canvasId, key, labels, datasets, suffix=' 小時') {
+function departmentMakeLineChart(canvasId, key, labels, datasets, suffix=' 小時', checkmarkLegend = false) {
     const canvas = document.getElementById(canvasId);
     if (!canvas || !window.Chart) return;
     departmentChartDestroy(key);
@@ -1337,7 +1385,36 @@ function departmentMakeLineChart(canvasId, key, labels, datasets, suffix=' 小�
             interaction:{mode:'index',intersect:false},
             plugins:{
                 tooltip:{callbacks:{label:ctx => `${analysisTooltipSeriesLabel(ctx.dataset.label)}: ${departmentFormat(ctx.parsed.y,suffix)}`}},
-                legend:{position:'bottom'}
+                legend: checkmarkLegend ? {
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        boxWidth: 14,
+                        boxHeight: 14,
+                        padding: 12,
+                        // 自訂圖例狀態，不使用預設刪除線；顏色沿用各資料線原本顏色。
+                        generateLabels: chart => chart.data.datasets.map((dataset, index) => {
+                            const meta = chart.getDatasetMeta(index);
+                            const color = dataset.borderColor || dataset.backgroundColor || '#64748b';
+                            return {
+                                text: dataset.label,
+                                datasetIndex: index,
+                                hidden: false,
+                                fillStyle: color,
+                                strokeStyle: color,
+                                lineWidth: 1
+                            };
+                        })
+                    },
+                    onClick: (event, legendItem, legend) => {
+                        const chart = legend.chart;
+                        const index = legendItem.datasetIndex;
+                        if (index === undefined) return;
+                        chart.setDatasetVisibility(index, !chart.isDatasetVisible(index));
+                        chart.update();
+                    }
+                } : {position:'bottom'}
             },
             scales:{
                 x:{
@@ -1351,7 +1428,37 @@ function departmentMakeLineChart(canvasId, key, labels, datasets, suffix=' 小�
                     ticks:{callback:function(value){ return analysisDisplayText(value); }}
                 }
             }
-        }
+        },
+        plugins: checkmarkLegend ? [{
+            id: 'departmentLineLegendCheckmark',
+            afterDraw(chart) {
+                const legend = chart.legend;
+                if (!legend || !legend.legendItems || !legend.legendHitBoxes) return;
+                const ctx = chart.ctx;
+                const labelsOptions = legend.options.labels || {};
+                const boxSize = Math.min(labelsOptions.boxWidth || 14, labelsOptions.boxHeight || 14);
+                ctx.save();
+                legend.legendItems.forEach((item, index) => {
+                    const datasetIndex = item.datasetIndex;
+                    if (datasetIndex === undefined || !chart.isDatasetVisible(datasetIndex)) return;
+                    const hitBox = legend.legendHitBoxes[index];
+                    if (!hitBox) return;
+                    const x = hitBox.left + boxSize / 2;
+                    const y = hitBox.top + hitBox.height / 2;
+                    const radius = boxSize * 0.34;
+                    ctx.beginPath();
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 1.8;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.moveTo(x - radius * 0.75, y);
+                    ctx.lineTo(x - radius * 0.15, y + radius * 0.6);
+                    ctx.lineTo(x + radius * 0.85, y - radius * 0.65);
+                    ctx.stroke();
+                });
+                ctx.restore();
+            }
+        }] : []
     });
 }
 
@@ -1563,14 +1670,19 @@ function renderDepartmentOverview() {
     const course = departmentRowForYear('course', selectedYear);
     const salary = departmentRowForYear('salary', selectedYear);
 
-    const teachers = departmentNumber(teach,'教師人數') || departmentNumber(course,'教師人數') || departmentNumber(salary,'教師人數');
-    const actual = departmentNumber(teach,'實際授課時數');
+    const isAdjunctIncl = analysisIsAdjunctIncl(departmentState.teacherType);
+    const teachers = isAdjunctIncl
+        ? departmentNumber(salary, '實支教師數')
+        : departmentNumber(teach,'教師人數') || departmentNumber(course,'教師人數') || departmentNumber(salary,'教師人數');
+    const actual = isAdjunctIncl
+        ? departmentNumber(salary, '學年度實支')
+        : departmentNumber(teach,'實際授課時數');
     const avg = teachers ? actual / teachers : null;
 
     const cards = [
-        ['教師人數', teachers, ' 人'],
-        ['實際授課時數', actual, ' 小時'],
-        ['平均授課時數', avg, ' 小時'],
+        [isAdjunctIncl ? '實支教師數' : '教師人數', teachers, ' 人'],
+        [isAdjunctIncl ? '實支鐘點' : '實際授課時數', actual, ' 小時'],
+        [isAdjunctIncl ? '平均實支鐘點' : '平均授課時數', avg, ' 小時'],
         ['開課學分', departmentNumber(course,'學分加總'), ' 學分'],
         ['開課時數', departmentNumber(course,'時數加總'), ' 小時'],
         ['開課課程數', departmentNumber(course,'堂數加總'), ' 門'],
@@ -1591,17 +1703,38 @@ function renderDepartmentOverview() {
 }
 
 function renderDepartmentTeachtime() {
-    if (departmentState.teacherType !== 'fulltime') {
+    const isAdjunctIncl = analysisIsAdjunctIncl(departmentState.teacherType);
+    const heading = document.querySelector('#department-teachtime-chart')?.closest('.bg-white')?.querySelector('h3');
+    const description = document.querySelector('#department-teachtime-chart')?.closest('.bg-white')?.querySelector('p');
+    if (heading) heading.textContent = isAdjunctIncl ? '2. 歷年實支鐘點' : '2. 歷年授課時數';
+    if (description) description.textContent = isAdjunctIncl
+        ? '111–114 學年度，呈現學年度實支與平均實支鐘點。'
+        : '111–114 年度，三項指標以系所資料呈現。';
+    if (departmentState.teacherType !== 'fulltime' && !isAdjunctIncl) {
         departmentSetNoData('department-teachtime-chart', 'department-teachtime-no-data', true);
         return;
     }
     departmentSetNoData('department-teachtime-chart', 'department-teachtime-no-data', false);
-    const rows = departmentRows('teachtime').sort((a,b) => Number(a.__year)-Number(b.__year));
+    const rows = (isAdjunctIncl ? departmentRows('salary') : departmentRows('teachtime'))
+        .sort((a,b) => Number(a.__year)-Number(b.__year));
     const years = rows.map(r => r.__year);
+
+    if (isAdjunctIncl) {
+        const actual = rows.map(r => departmentNumber(r, '學年度實支'));
+        const avg = rows.map(r => {
+            const paidTeachers = departmentNumber(r, '實支教師數');
+            return paidTeachers ? departmentNumber(r, '學年度實支') / paidTeachers : null;
+        });
+        departmentMakeLineChart('department-teachtime-chart','teachtime',years,[
+            {label:'學年度實支',data:actual},
+            {label:'平均實支鐘點',data:avg}
+        ], ' 小時', true);
+        return;
+    }
+
     const actual = rows.map(r => departmentNumber(r,'實際授課時數'));
     const avg = rows.map(r => departmentAverage(r,'實際授課時數'));
     const weighted = rows.map(r => departmentNumber(r,'加權授課時數'));
-
     departmentMakeLineChart('department-teachtime-chart','teachtime',years,[
         {label:'實際授課時數',data:actual},
         {label:'平均授課時數',data:avg},
@@ -1621,7 +1754,8 @@ function setDepartmentSalaryMode(mode) {
 }
 
 function renderDepartmentSalary() {
-    if (departmentState.teacherType !== 'fulltime') {
+    const isAdjunctIncl = analysisIsAdjunctIncl(departmentState.teacherType);
+    if (departmentState.teacherType !== 'fulltime' && !isAdjunctIncl) {
         departmentSetNoData('department-salary-chart', 'department-salary-no-data', true);
         return;
     }
@@ -1629,13 +1763,21 @@ function renderDepartmentSalary() {
     const rows = departmentRows('salary').sort((a,b) => Number(a.__year)-Number(b.__year));
     const years = rows.map(r => r.__year);
     const average = departmentState.salaryMode === 'average';
+    const fields = isAdjunctIncl ? ADJUNCT_SALARY_FIELDS : DEPARTMENT_SALARY_FIELDS;
+    const colors = isAdjunctIncl ? ADJUNCT_SALARY_COLORS : DEPARTMENT_SALARY_COLORS;
 
-    const datasets = DEPARTMENT_SALARY_FIELDS.map((field, index) => {
-        const color = DEPARTMENT_SALARY_COLORS[index] || '#64748b';
+    const datasets = fields.map((field, index) => {
+        const color = colors[index] || '#64748b';
         return {
             label: field,
-            data: rows.map(r => average ? departmentAverage(r,field) : departmentNumber(r,field)),
-            backgroundColor: DEPARTMENT_SALARY_HATCH_FIELDS.has(field)
+            data: rows.map(r => {
+                if (!average) return departmentNumber(r, field);
+                const denominator = isAdjunctIncl
+                    ? departmentNumber(r, '實支教師數')
+                    : departmentNumber(r, '教師人數');
+                return denominator ? departmentNumber(r, field) / denominator : null;
+            }),
+            backgroundColor: !isAdjunctIncl && DEPARTMENT_SALARY_HATCH_FIELDS.has(field)
                 ? departmentCreateHatchPattern(color)
                 : color,
             borderColor: color,
