@@ -1739,7 +1739,7 @@ function renderDepartmentTeachtime() {
         {label:'實際授課時數',data:actual},
         {label:'平均授課時數',data:avg},
         {label:'加權授課時數',data:weighted}
-    ]);
+    ], ' 小時', true);
 }
 
 function setDepartmentSalaryMode(mode) {
