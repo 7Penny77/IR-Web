@@ -1352,11 +1352,50 @@
                 </div>
             </div>
 
-            <!-- 3. 教師鐘點費結構 -->
+            <!-- 3. 歷年超支鐘點 -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-5 md:p-6">
                 <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
                     <div>
-                        <h3 class="font-black text-lg text-ntpuDark">3. 教師鐘點費結構</h3>
+                        <h3 class="font-black text-lg text-ntpuDark">3. 歷年超支鐘點</h3>
+                        <p class="text-xs text-gray-500 mt-1">比較學年超支鐘點、實際授課時數與加權授課時數，可切換總量或每位教師平均。</p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <select id="department-excess-mode" onchange="renderDepartmentExcessHours()" class="rounded-lg border-gray-300 text-xs">
+                            <option value="total">總量</option><option value="average">教師平均</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="relative h-[420px]"><canvas id="department-excess-hours-chart"></canvas><div id="department-excess-hours-no-data" class="hidden h-full items-center justify-center text-gray-400 font-semibold">此教師類別暫無資料</div></div>
+            </div>
+
+            <!-- 4. 超支鐘點與授課時數分布圖 -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-5 md:p-6">
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                    <div>
+                        <h3 class="font-black text-lg text-ntpuDark">4. 超支鐘點與授課時數分布圖</h3>
+                        <p class="text-xs text-gray-500 mt-1">依個別教師資料繪製直方圖，分組數依資料範圍與分布自動決定。</p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <select id="department-distribution-year-select" onchange="departmentSectionYearChanged('distribution')" class="rounded-lg border-gray-300 text-xs">
+                            <option value="111">111 學年度</option><option value="112">112 學年度</option><option value="113">113 學年度</option><option value="114" selected>114 學年度</option>
+                        </select>
+                        <select id="department-distribution-variable" onchange="renderDepartmentSalaryDistribution()" class="rounded-lg border-gray-300 text-xs">
+                            <option value="學年超支鐘點">學年超支鐘點</option><option value="實際授課時數">實際授課時數</option><option value="加權授課時數">加權授課時數</option>
+                        </select>
+                        <select id="department-distribution-zero" onchange="renderDepartmentSalaryDistribution()" class="rounded-lg border-gray-300 text-xs">
+                            <option value="exclude">排除 0</option><option value="include">包含 0</option>
+                        </select>
+                    </div>
+                </div>
+                <p id="department-distribution-count" class="text-xs text-gray-500 mb-2"></p>
+                <div class="relative h-[420px]"><canvas id="department-salary-distribution-chart"></canvas><div id="department-salary-distribution-no-data" class="hidden h-full items-center justify-center text-gray-400 font-semibold">此教師類別暫無資料</div></div>
+            </div>
+
+            <!-- 5. 教師鐘點費結構 -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-5 md:p-6">
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                    <div>
+                        <h3 class="font-black text-lg text-ntpuDark">5. 教師鐘點費結構</h3>
                         <p class="text-xs text-gray-500 mt-1">111–114 學年度；可切換總量或每位教師平均。</p>
                     </div>
                     <div class="inline-flex rounded-xl border border-gray-200 p-1 bg-gray-50">
@@ -1370,11 +1409,60 @@
                 </div>
             </div>
 
-            <!-- 4. 開課結構 -->
+            <!-- 6. 減授使用情形 -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-5 md:p-6">
                 <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
                     <div>
-                        <h3 class="font-black text-lg text-ntpuDark">4. 開課結構</h3>
+                        <h3 class="font-black text-lg text-ntpuDark">6. 減授使用情形</h3>
+                        <p class="text-xs text-gray-500 mt-1">觀察各項減授工具及減授總和的教師分布；減授總和為五項工具加總。</p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <select id="department-usage-year-select" onchange="departmentSectionYearChanged('usage')" class="rounded-lg border-gray-300 text-xs">
+                            <option value="111">111 學年度</option><option value="112">112 學年度</option><option value="113">113 學年度</option><option value="114" selected>114 學年度</option>
+                        </select>
+                        <select id="department-usage-variable" onchange="renderDepartmentReductionUsage()" class="rounded-lg border-gray-300 text-xs">
+                            <option value="行政減授">行政減授</option><option value="進修學士班折抵">進修學士班折抵</option><option value="新進教師減授及返還">新進教師減授及返還</option><option value="計畫類">計畫類</option><option value="指導研究生">指導研究生</option><option value="減授總和">減授總和</option>
+                        </select>
+                        <select id="department-usage-zero" onchange="renderDepartmentReductionUsage()" class="rounded-lg border-gray-300 text-xs">
+                            <option value="exclude">排除 0</option><option value="include">包含 0</option>
+                        </select>
+                    </div>
+                </div>
+                <p id="department-usage-count" class="text-xs text-gray-500 mb-2"></p>
+                <div class="relative h-[420px]"><canvas id="department-reduction-usage-chart"></canvas><div id="department-reduction-usage-no-data" class="hidden h-full items-center justify-center text-gray-400 font-semibold">此教師類別暫無資料</div></div>
+            </div>
+
+            <!-- 7. 各項減授工具與授課時數 -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-5 md:p-6">
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                    <div>
+                        <h3 class="font-black text-lg text-ntpuDark">7. 各項減授工具與授課時數</h3>
+                        <p class="text-xs text-gray-500 mt-1">以個別教師為觀察單位，呈現減授工具與授課時數指標的關係。</p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <select id="department-scatter-year-select" onchange="departmentSectionYearChanged('scatter')" class="rounded-lg border-gray-300 text-xs">
+                            <option value="111">111 學年度</option><option value="112">112 學年度</option><option value="113">113 學年度</option><option value="114" selected>114 學年度</option>
+                        </select>
+                        <select id="department-scatter-x" onchange="renderDepartmentReductionScatter()" class="rounded-lg border-gray-300 text-xs">
+                            <option value="行政減授">行政減授</option><option value="進修學士班折抵">進修學士班折抵</option><option value="新進教師減授及返還">新進教師減授及返還</option><option value="計畫類">計畫類</option><option value="指導研究生">指導研究生</option><option value="減授總和">減授總和</option>
+                        </select>
+                        <select id="department-scatter-y" onchange="renderDepartmentReductionScatter()" class="rounded-lg border-gray-300 text-xs">
+                            <option value="學年超支鐘點">學年超支鐘點</option><option value="實際授課時數">實際授課時數</option><option value="加權授課時數">加權授課時數</option>
+                        </select>
+                        <select id="department-scatter-zero" onchange="renderDepartmentReductionScatter()" class="rounded-lg border-gray-300 text-xs">
+                            <option value="exclude">排除 X=0</option><option value="include">包含 X=0</option>
+                        </select>
+                    </div>
+                </div>
+                <p id="department-scatter-count" class="text-xs text-gray-500 mb-2"></p>
+                <div class="relative h-[440px]"><canvas id="department-reduction-scatter-chart"></canvas><div id="department-reduction-scatter-no-data" class="hidden h-full items-center justify-center text-gray-400 font-semibold">此教師類別暫無資料</div></div>
+            </div>
+
+            <!-- 8. 開課結構 -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-5 md:p-6">
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                    <div>
+                        <h3 class="font-black text-lg text-ntpuDark">8. 開課結構</h3>
                         <p class="text-xs text-gray-500 mt-1">可切換加總或平均（平均指的是每位教師平均）。</p>
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
@@ -1396,11 +1484,12 @@
                 <div class="h-[390px]"><canvas id="department-course-chart"></canvas></div>
             </div>
 
-            <!-- 5. 大班授課 -->
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <!-- 9. 大班授課 -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-5 md:p-6">
                 <div class="flex flex-wrap items-start justify-between gap-3 mb-4">
                     <div>
-                        <h3 class="font-black text-lg text-ntpuDark">5. 大班授課</h3>
+                        <h3 class="font-black text-lg text-ntpuDark">9. 大班授課</h3>
                         <p class="text-xs text-gray-500 mt-1">依必修、選修、通識、大一國文、基礎分類。</p>
                     </div>
                     <div class="flex flex-wrap items-center gap-2 ml-auto">
@@ -1418,11 +1507,11 @@
                 <div class="relative h-[360px] w-full"><canvas id="department-large-chart"></canvas></div>
             </div>
 
-            <!-- 6. 支援外系 -->
+            <!-- 10. 支援外系 -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-5 md:p-6">
                 <div class="flex flex-wrap items-start justify-between gap-3 mb-4">
                     <div>
-                        <h3 class="font-black text-lg text-ntpuDark">6. 支援外系</h3>
+                        <h3 class="font-black text-lg text-ntpuDark">10. 支援外系</h3>
                         <p class="text-xs text-gray-500 mt-1">依必修、選修、通識、大一國文、基礎分類。</p>
                     </div>
                     <div class="flex flex-wrap items-center gap-2 ml-auto">
@@ -1440,10 +1529,12 @@
                 <div class="relative h-[360px] w-full"><canvas id="department-support-chart"></canvas></div>
             </div>
 
-            <!-- 7. 學士班畢業學分 -->
+            </div>
+
+            <!-- 11. 學士班畢業學分 -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-5 md:p-6">
                 <div class="mb-4">
-                    <h3 class="font-black text-lg text-ntpuDark">7. 學士班畢業學分</h3>
+                    <h3 class="font-black text-lg text-ntpuDark">11. 學士班畢業學分</h3>
                     <p class="text-xs text-gray-500 mt-1">114 學年度結構與 111–114 學年度總學分趨勢。</p>
                 </div>
                 <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
@@ -1784,7 +1875,7 @@ switchAnalysisTab('school');
             }
         }
     </script>
-	<script src="./js/analysis.js?v=10"></script>
+	<script src="./js/analysis.js?v=11"></script>
 	<script src="./js/evaluation.js"></script>
 </body>
 </html>
