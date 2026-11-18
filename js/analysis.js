@@ -1166,6 +1166,83 @@ function initTeacherAnalysis() {
     loadAnalysisData();
 }
 
+
+// 各系所分析區塊 2–11：提供圖表放大與 PNG 匯出。
+const DEPARTMENT_EXPAND_CHARTS = [
+    ['department-teachtime-chart', '2. 歷年授課時數'],
+    ['department-excess-hours-chart', '3. 歷年超支鐘點'],
+    ['department-salary-distribution-chart', '4. 超支鐘點與授課時數分布圖'],
+    ['department-salary-chart', '5. 教師鐘點費結構'],
+    ['department-reduction-usage-chart', '6. 減授使用情形'],
+    ['department-reduction-scatter-chart', '7. 各項減授工具與授課時數'],
+    ['department-course-chart', '8. 開課結構'],
+    ['department-large-chart', '9. 大班授課'],
+    ['department-support-chart', '10. 支援外系'],
+    ['department-graduate-overview-chart', '11. 學士班畢業學分－114 學年度學分結構'],
+    ['department-graduate-trend-chart', '11. 學士班畢業學分－歷年總學分數']
+];
+
+function initDepartmentChartExpandButtons() {
+    DEPARTMENT_EXPAND_CHARTS.forEach(([canvasId, title]) => {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas || document.querySelector(`[data-expand-chart="${canvasId}"]`)) return;
+        const card = canvas.closest('#department-dashboard > .bg-white, #department-dashboard > .grid > .bg-white');
+        if (!card) return;
+        let host;
+        if (canvasId.startsWith('department-graduate-')) {
+            // 區塊 11 有兩張圖；按鈕放在各自的小標題旁，不改動外層卡片排版。
+            host = canvas.parentElement?.parentElement?.querySelector('h4') || null;
+        } else {
+            const heading = card.querySelector('h3');
+            host = heading?.parentElement?.parentElement;
+        }
+        if (!host) return;
+        host.classList.add('flex', 'items-start', 'justify-between', 'gap-3');
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.dataset.expandChart = canvasId;
+        button.className = 'inline-flex shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-sm text-gray-600 shadow-sm hover:bg-blue-50 hover:text-ntpuBlue';
+        button.title = '放大圖表';
+        button.setAttribute('aria-label', `放大${title}`);
+        button.innerHTML = '<i class="fa-solid fa-up-right-and-down-left-from-center"></i>';
+        button.addEventListener('click', () => openDepartmentChartModal(canvasId, title));
+        host.appendChild(button);
+    });
+}
+
+function openDepartmentChartModal(canvasId, title) {
+    const canvas = document.getElementById(canvasId);
+    const chart = canvas && window.Chart ? Chart.getChart(canvas) : null;
+    if (!chart) return;
+    chart.resize();
+    chart.update('none');
+    const imageUrl = chart.toBase64Image('image/png', 1);
+    const modal = document.getElementById('department-chart-modal');
+    const image = document.getElementById('department-chart-modal-image');
+    const heading = document.getElementById('department-chart-modal-title');
+    const download = document.getElementById('department-chart-download');
+    if (!modal || !image || !download) return;
+    if (heading) heading.textContent = title || '圖表放大檢視';
+    image.src = imageUrl;
+    download.href = imageUrl;
+    download.download = `${(title || 'ntpu-chart').replace(/[^\w\u4e00-\u9fff-]+/g, '_')}.png`;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.body.classList.add('overflow-hidden');
+}
+
+function closeDepartmentChartModal() {
+    const modal = document.getElementById('department-chart-modal');
+    if (!modal) return;
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    document.body.classList.remove('overflow-hidden');
+}
+
+document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') closeDepartmentChartModal();
+});
+
 document.addEventListener('DOMContentLoaded', initTeacherAnalysis);
 
 
@@ -1387,8 +1464,11 @@ function departmentMakeLineChart(canvasId, key, labels, datasets, suffix=' 小�
 
     departmentState.charts[key] = new Chart(canvas.getContext('2d'), {
         type:'line',
-        data:{labels:labels.map(analysisDisplayText), datasets:datasets.map(d => ({
-            ...d, label:analysisDisplayText(d.label), borderWidth:2, tension:.25, fill:false, pointRadius:4
+        data:{labels:labels.map(analysisDisplayText), datasets:datasets.map((d, index) => ({
+            ...d,
+            borderColor: d.borderColor || ['#1f5798', '#16a34a', '#f7e400'][index % 3],
+            backgroundColor: d.backgroundColor || ['#1f5798', '#16a34a', '#f7e400'][index % 3],
+            label:analysisDisplayText(d.label), borderWidth:2, tension:.25, fill:false, pointRadius:4
         }))},
         options:{
             responsive:true, maintainAspectRatio:false,
@@ -1642,6 +1722,7 @@ window.departmentTeacherTypeChanged = function departmentTeacherTypeChanged() {
 };
 
 function loadDepartmentAnalysis() {
+    initDepartmentChartExpandButtons();
     if (!analysisState.loaded) return;
     departmentState.teacherType = document.getElementById('department-analysis-teacher-type')?.value || departmentState.teacherType || 'fulltime';
     const select = document.getElementById('department-analysis-select');
@@ -1777,31 +1858,28 @@ function departmentSelectedYear(id) {
     return Number(document.getElementById(id)?.value || 114);
 }
 
-function departmentHistogram(values) {
+function departmentHistogram(values, binWidth = 1) {
     const sorted = values.map(Number).filter(Number.isFinite).sort((a,b)=>a-b);
     if (!sorted.length) return {labels:[], counts:[]};
     const min = sorted[0], max = sorted[sorted.length-1];
-    if (min === max) return {labels:[String(departmentFormat(min))], counts:[sorted.length]};
-    const quantile = q => {
-        const pos=(sorted.length-1)*q, lo=Math.floor(pos), hi=Math.ceil(pos);
-        return sorted[lo] + (sorted[hi]-sorted[lo])*(pos-lo);
-    };
-    const iqr = quantile(.75)-quantile(.25);
-    // Freedman–Diaconis：依樣本數與資料離散程度自動決定組距；IQR 為 0 時改用 Sturges。
-    let binWidth = iqr > 0 ? 2*iqr/Math.cbrt(sorted.length) : 0;
-    let bins = binWidth > 0 ? Math.ceil((max-min)/binWidth) : Math.ceil(Math.log2(sorted.length)+1);
-    bins = Math.max(1, Math.min(30, bins));
-    const width=(max-min)/bins;
-    const counts=Array(bins).fill(0);
-    sorted.forEach(v => counts[Math.min(bins-1,Math.floor((v-min)/width))]++);
-    const labels=counts.map((_,i)=>`${departmentFormat(min+i*width)}–${departmentFormat(i===bins-1?max:min+(i+1)*width)}`);
-    return {labels,counts};
+    const step = Number(binWidth) > 0 ? Number(binWidth) : 1;
+    const start = Math.floor(min / step) * step;
+    // 將最大值所在組納入；即使資料都相同，也至少顯示一組。
+    const binCount = Math.max(1, Math.floor((max - start) / step) + 1);
+    const counts = Array(binCount).fill(0);
+    sorted.forEach(v => {
+        const index = Math.max(0, Math.min(binCount - 1, Math.floor((v - start) / step)));
+        counts[index]++;
+    });
+    const fmt = value => Number(value.toFixed(6)).toString();
+    const labels = counts.map((_, i) => `${fmt(start + i * step)}–${fmt(start + (i + 1) * step)}`);
+    return {labels, counts};
 }
 
-function departmentMakeHistogram(canvasId,key,values,label) {
+function departmentMakeHistogram(canvasId,key,values,label,binWidth = 1) {
     const canvas=document.getElementById(canvasId); if(!canvas) return;
     departmentChartDestroy(key);
-    const {labels,counts}=departmentHistogram(values);
+    const {labels,counts}=departmentHistogram(values, binWidth);
     departmentState.charts[key]=new Chart(canvas.getContext('2d'),{
         type:'bar',data:{labels,datasets:[{label,data:counts,backgroundColor:'rgba(31,87,152,.72)',borderColor:'#1f5798',borderWidth:1}]},
         options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.raw} 位教師`}}},
@@ -1819,7 +1897,7 @@ function renderDepartmentExcessHours() {
     const average=document.getElementById('department-excess-mode')?.value==='average';
     const fields=['學年超支鐘點','實際授課時數','加權授課時數'];
     const years=rows.map(r=>`${r.年度} 學年度`);
-    const colors=['#dc2626','#1f5798','#16a34a'];
+    const colors=['#1f5798','#16a34a','#f7e400'];
     const datasets=fields.map((field,i)=>({
         label:field,
         data:rows.map(r=>{
@@ -1844,8 +1922,8 @@ function renderDepartmentSalaryDistribution() {
     const field=document.getElementById('department-distribution-variable')?.value||'學年超支鐘點';
     const includeZero=document.getElementById('department-distribution-zero')?.value==='include';
     const rows=departmentDistributionRows().filter(r=>Number(r.年度)===year && (includeZero || departmentNumber(r,field)!==0));
-    departmentMakeHistogram('department-salary-distribution-chart','salaryDistribution',rows.map(r=>r[field]),field);
-    const note=document.getElementById('department-distribution-count'); if(note)note.textContent=`樣本數：${rows.length} 位教師；分組數由資料範圍自動決定。`;
+    departmentMakeHistogram('department-salary-distribution-chart','salaryDistribution',rows.map(r=>r[field]),field,1);
+    const note=document.getElementById('department-distribution-count'); if(note)note.textContent=`樣本數：${rows.length} 位教師；每組 1 小時。`;
 }
 
 function renderDepartmentReductionUsage() {
@@ -1856,8 +1934,8 @@ function renderDepartmentReductionUsage() {
     const includeZero=document.getElementById('department-usage-zero')?.value==='include';
     const rows=departmentDistributionRows().filter(r=>Number(r.年度)===year);
     const values=rows.filter(r=>includeZero || (field==='減授總和'?departmentReductionTotal(r):departmentNumber(r,field))!==0).map(r=>field==='減授總和'?departmentReductionTotal(r):departmentNumber(r,field));
-    departmentMakeHistogram('department-reduction-usage-chart','reductionUsage',values,field);
-    const note=document.getElementById('department-usage-count'); if(note)note.textContent=`樣本數：${values.length} 位教師；分組數由資料範圍自動決定。`;
+    departmentMakeHistogram('department-reduction-usage-chart','reductionUsage',values,field,0.5);
+    const note=document.getElementById('department-usage-count'); if(note)note.textContent=`樣本數：${values.length} 位教師；每組 0.5 小時。`;
 }
 
 function renderDepartmentReductionScatter() {
