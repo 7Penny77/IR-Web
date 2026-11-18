@@ -1920,7 +1920,7 @@ function departmentMakeHistogram(canvasId,key,values,label,binWidth = 1) {
     departmentChartDestroy(key);
     const {labels,counts}=departmentHistogram(values, binWidth);
     departmentState.charts[key]=new Chart(canvas.getContext('2d'),{
-        type:'bar',data:{labels,datasets:[{label,data:counts,backgroundColor:'rgba(31,87,152,.72)',borderColor:'#156178',borderWidth:0,barPercentage:1,categoryPercentage:1}]},
+        type:'bar',data:{labels,datasets:[{label,data:counts,backgroundColor:'rgba(31,87,152,.72)',borderColor:'#52BAFF',borderWidth:0,barPercentage:1,categoryPercentage:1}]},
         options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.raw} 位教師`}}},
             scales:{x:{title:{display:true,text:'數值區間'},ticks:{maxRotation:45,minRotation:0}},y:{beginAtZero:true,title:{display:true,text:'教師人數'},ticks:{precision:0}}}}
     });
