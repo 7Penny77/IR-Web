@@ -1340,11 +1340,14 @@
                 <div id="department-overview-cards" class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-3"></div>
             </div>
 
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
             <!-- 2. 歷年授課時數 -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-5 md:p-6">
-                <div class="mb-4">
+                <div class="flex items-start justify-between gap-3 mb-4">
+                    <div>
                     <h3 class="font-black text-lg text-ntpuDark">2. 歷年授課時數</h3>
                     <p class="text-xs text-gray-500 mt-1">加權授課時數：大班、外語和USR授課時數加權計算而得。</p>
+                    </div>
                 </div>
                 <div class="h-[420px]">
                     <canvas id="department-teachtime-chart"></canvas>
@@ -1368,12 +1371,14 @@
                 <div class="relative h-[420px]"><canvas id="department-excess-hours-chart"></canvas><div id="department-excess-hours-no-data" class="hidden h-full items-center justify-center text-gray-400 font-semibold">此教師類別暫無資料</div></div>
             </div>
 
+            </div>
+
             <!-- 4. 超支鐘點與授課時數分布圖 -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-5 md:p-6">
                 <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
                     <div>
                         <h3 class="font-black text-lg text-ntpuDark">4. 超支鐘點與授課時數分布圖</h3>
-                        <p class="text-xs text-gray-500 mt-1">依個別教師資料繪製直方圖，分組數依資料範圍與分布自動決定。</p>
+                        <p class="text-xs text-gray-500 mt-1">依個別教師資料繪製直方圖，以 1 小時為一組。</p>
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
                         <select id="department-distribution-year-select" onchange="departmentSectionYearChanged('distribution')" class="rounded-lg border-gray-300 text-xs">
@@ -1414,7 +1419,7 @@
                 <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
                     <div>
                         <h3 class="font-black text-lg text-ntpuDark">6. 減授使用情形</h3>
-                        <p class="text-xs text-gray-500 mt-1">觀察各項減授工具及減授總和的教師分布；減授總和為五項工具加總。</p>
+                        <p class="text-xs text-gray-500 mt-1">觀察各項減授工具及減授總和的教師分布；每 0.5 小時為一組，減授總和為五項工具加總。</p>
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
                         <select id="department-usage-year-select" onchange="departmentSectionYearChanged('usage')" class="rounded-lg border-gray-300 text-xs">
@@ -1877,5 +1882,22 @@ switchAnalysisTab('school');
     </script>
 	<script src="./js/analysis.js?v=11"></script>
 	<script src="./js/evaluation.js"></script>
+
+    <!-- 各系所分析圖表放大視窗 -->
+    <div id="department-chart-modal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/70 p-3 md:p-8" role="dialog" aria-modal="true" aria-label="放大圖表" onclick="if(event.target===this) closeDepartmentChartModal()">
+        <div class="relative flex max-h-full w-full max-w-7xl flex-col rounded-2xl bg-white p-4 md:p-6 shadow-2xl">
+            <div class="mb-3 flex items-center justify-between gap-3">
+                <h3 id="department-chart-modal-title" class="font-bold text-lg text-ntpuDark">圖表放大檢視</h3>
+                <div class="flex items-center gap-2">
+                    <a id="department-chart-download" href="#" download="ntpu-chart.png" class="inline-flex items-center gap-2 rounded-lg bg-ntpuBlue px-3 py-2 text-sm font-semibold text-white hover:bg-blue-800"><i class="fa-solid fa-download"></i><span>下載 PNG</span></a>
+                    <button type="button" onclick="closeDepartmentChartModal()" aria-label="關閉視窗" class="flex h-9 w-9 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100"><i class="fa-solid fa-xmark text-lg"></i></button>
+                </div>
+            </div>
+            <div class="min-h-0 flex-1 overflow-auto rounded-lg bg-white">
+                <img id="department-chart-modal-image" alt="放大圖表" class="mx-auto max-h-[78vh] w-full object-contain" />
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>
