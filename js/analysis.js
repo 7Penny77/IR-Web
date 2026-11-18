@@ -1261,9 +1261,40 @@ function openDepartmentChartModal(canvasId, title) {
     departmentModalChart.resize();
     departmentModalChart.update('none');
 
-    const imageUrl = departmentModalChart.toBase64Image('image/png', 1);
-    download.href = imageUrl;
-    download.download = `${(title || 'ntpu-chart').replace(/[^\w\u4e00-\u9fff-]+/g, '_')}.png`;
+    // 設定下載檔名；圖片改為點擊下載時才即時產生
+download.href = '#';
+download.dataset.filename =
+    `${(title || 'ntpu-chart').replace(/[^\w\u4e00-\u9fff-]+/g, '_')}.png`;
+
+download.onclick = function (event) {
+    event.preventDefault();
+
+    const chart = departmentModalChart;
+    if (!chart) return;
+
+    // 停止動畫，重新依目前放大視窗尺寸繪製圖表
+    chart.stop();
+    chart.resize();
+    chart.update('none');
+
+    // 擷取已完成繪製的 Canvas
+    const imageUrl = chart.toBase64Image('image/png', 1);
+
+    if (!imageUrl || imageUrl === 'data:,') {
+        console.error('圖表 PNG 匯出失敗：Canvas 尚未完成繪製。');
+        alert('圖表尚未完成繪製，請稍後再試。');
+        return;
+    }
+
+    // 建立臨時下載連結
+    const link = document.createElement('a');
+    link.href = imageUrl;
+    link.download = download.dataset.filename || 'ntpu-chart.png';
+
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+};
 }
 
 function closeDepartmentChartModal() {
