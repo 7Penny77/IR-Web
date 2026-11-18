@@ -156,7 +156,7 @@ const TOPICS = {
 const ADJUNCT_SALARY_FIELDS = [
     '正課', '實習', '大班', '遠距', '外語', '代課'
 ];
-const ADJUNCT_SALARY_COLORS = ['#1f5798', '#16a34a', '#f7e400', '#8b5cf6', '#0891b2', '#f28500'];
+const ADJUNCT_SALARY_COLORS = ['#156178', '#5AB5BF', '#FED257', '#C6CCD1', '#FF8957', '#A53914'];
 
 function analysisIsAdjunctIncl(teacherType = analysisState.teacherType) {
     return teacherType === 'adjunct_incl';
@@ -1288,8 +1288,8 @@ const DEPARTMENT_SALARY_HATCH_FIELDS = new Set([
 ]);
 
 const DEPARTMENT_SALARY_COLORS = [
-    '#1f5798', '#16a34a', '#f7e400', '#8b5cf6', '#0891b2',
-    '#64748b', '#dc2626', '#f28500', '#7c3aed', '#475569'
+    '#156178', '#5AB5BF', '#FF8957', '#A53914', '#C7CDD3',
+    '#FED257', '#5AB5BF', '#156178', '#7c3aed', '#475569'
 ];
 
 function departmentCreateHatchPattern(color) {
@@ -1466,8 +1466,8 @@ function departmentMakeLineChart(canvasId, key, labels, datasets, suffix=' 小�
         type:'line',
         data:{labels:labels.map(analysisDisplayText), datasets:datasets.map((d, index) => ({
             ...d,
-            borderColor: d.borderColor || ['#1f5798', '#16a34a', '#f7e400'][index % 3],
-            backgroundColor: d.backgroundColor || ['#1f5798', '#16a34a', '#f7e400'][index % 3],
+            borderColor: d.borderColor || ['#7296A4', '#A53914', '#156178'][index % 3],
+            backgroundColor: d.backgroundColor || ['#7296A4', '#A53914', '#156178'][index % 3],
             label:analysisDisplayText(d.label), borderWidth:2, tension:.25, fill:false, pointRadius:4
         }))},
         options:{
@@ -1804,7 +1804,7 @@ function renderDepartmentTeachtime() {
     if (heading) heading.textContent = isAdjunctIncl ? '2. 歷年實支鐘點' : '2. 歷年授課時數';
     if (description) description.textContent = isAdjunctIncl
         ? '111–114 學年度，呈現學年度實支與平均實支鐘點。'
-        : '111–114 年度，三項指標以系所資料呈現。';
+        : '資料來源：教務處提供之教師授課時數。';
     if (departmentState.teacherType !== 'fulltime' && !isAdjunctIncl) {
         departmentSetNoData('department-teachtime-chart', 'department-teachtime-no-data', true);
         return;
@@ -1881,7 +1881,7 @@ function departmentMakeHistogram(canvasId,key,values,label,binWidth = 1) {
     departmentChartDestroy(key);
     const {labels,counts}=departmentHistogram(values, binWidth);
     departmentState.charts[key]=new Chart(canvas.getContext('2d'),{
-        type:'bar',data:{labels,datasets:[{label,data:counts,backgroundColor:'rgba(31,87,152,.72)',borderColor:'#1f5798',borderWidth:1}]},
+        type:'bar',data:{labels,datasets:[{label,data:counts,backgroundColor:'rgba(31,87,152,.72)',borderColor:'#156178',borderWidth:1}]},
         options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.raw} 位教師`}}},
             scales:{x:{title:{display:true,text:'數值區間'},ticks:{maxRotation:45,minRotation:0}},y:{beginAtZero:true,title:{display:true,text:'教師人數'},ticks:{precision:0}}}}
     });
@@ -1897,7 +1897,7 @@ function renderDepartmentExcessHours() {
     const average=document.getElementById('department-excess-mode')?.value==='average';
     const fields=['學年超支鐘點','實際授課時數','加權授課時數'];
     const years=rows.map(r=>`${r.年度} 學年度`);
-    const colors=['#1f5798','#16a34a','#f7e400'];
+    const colors=['#A53914','#7296A4','#156178'];
     const datasets=fields.map((field,i)=>({
         label:field,
         data:rows.map(r=>{
