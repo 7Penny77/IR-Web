@@ -15,7 +15,8 @@ const analysisState = {
         courseFulltime: [],
         courseAdjunctExclCoteach: [],
         courseAdjunctInclCoteach: [],
-        adjunctSalary: []
+        adjunctSalary: [],
+        salaryDistribution: []
     },
     loaded: false,
     teacherType: 'fulltime',
@@ -71,8 +72,8 @@ const TOPICS = {
                 ['正課', '正課'],
                 ['實習', '實習'],
                 ['大班', '大班'],
-                ['遠距', '遠距'],
                 ['外語', '外語'],
+                ['學年超支鐘點', '學年超支鐘點'],
                 ['行政減授', '行政減授'],
                 ['進修學士班折抵', '進修學士班折抵'],
                 ['新進教師減授及返還', '新進教師減授及返還'],
@@ -277,7 +278,8 @@ async function loadAnalysisData() {
         courseFulltime: 'course_fulltime.json',
         courseAdjunctExclCoteach: 'course_adjunct_excl_coteach.json',
         courseAdjunctInclCoteach: 'course_adjunct_incl_coteach.json',
-        adjunctSalary: 'adjunct_salary.json'
+        adjunctSalary: 'adjunct_salary.json',
+        salaryDistribution: 'salary_distribution.json'
     };
 
     try {
@@ -548,14 +550,14 @@ function updateCustomOptions() {
     const topic = TOPICS[analysisState.topic];
     let fields = analysisUnique((analysisTopicVariables(analysisState.topic)[analysisState.unit] || []).map(v => v[1]));
 
-    // 自定義保留常用分母：教師人數；salary 另外保留鐘點時數。
+    // 自定義保留常用分母：教師人數；專任 salary 另保留學年超支鐘點。
     if (analysisState.topic === 'teachtime' || analysisState.topic === 'salary' || analysisState.topic === 'course') {
         fields = analysisUnique([...fields, '教師人數']);
     }
     if (analysisState.topic === 'salary' && analysisIsAdjunctIncl()) {
         fields = analysisUnique([...fields, '實支教師數']);
     }
-    if (analysisState.topic === 'salary' && !analysisIsAdjunctIncl()) fields = analysisUnique([...fields, '鐘點時數']);
+    if (analysisState.topic === 'salary' && !analysisIsAdjunctIncl()) fields = analysisUnique([...fields, '學年超支鐘點']);
 
     const options = fields.map(field =>
         `<option value="${escapeHtml(field)}">${escapeHtml(analysisFieldLabel(analysisState.topic, field))}</option>`
@@ -569,7 +571,7 @@ function updateCustomOptions() {
         const preferred = analysisState.topic === 'course'
             ? (analysisState.unit === '學分' ? '學分加總' : analysisState.unit === '時數' ? '時數加總' : '堂數加總')
             : analysisState.topic === 'salary'
-                ? '鐘點時數'
+                ? '學年超支鐘點'
                 : fields.find(f => f === '總學分數') || fields.find(f => f.includes('加總')) || fields[0] || '';
         analysisState.customDenominator = preferred;
     }
@@ -657,12 +659,12 @@ function findDenominatorField(topic, unit) {
     }
     if (topic === 'graduate') return '總學分數';
     if (topic === 'teachtime') return null;
-    if (topic === 'salary') return '鐘點時數';
+    if (topic === 'salary') return '學年超支鐘點';
     return null;
 }
 
 const SALARY_SHARE_FIELDS = [
-    '正課', '實習', '大班', '遠距', '外語',
+    '正課', '實習', '大班', '外語',
     '行政減授', '進修學士班折抵', '新進教師減授及返還',
     '計畫類', '指導研究生'
 ];
@@ -1176,7 +1178,8 @@ const departmentState = {
     selectedDepartment: '',
     teacherType: 'fulltime',
     salaryMode: 'total',
-    charts: {}
+    charts: {},
+    excessMode: 'total'
 };
 
 const DEPARTMENT_COURSE_CATEGORIES = [
@@ -1191,7 +1194,6 @@ const DEPARTMENT_SALARY_FIELDS = [
     '正課',
     '實習',
     '大班',
-    '遠距',
     '外語',
     '進修學士班折抵',
     '行政減授',
@@ -1252,8 +1254,12 @@ function departmentSetNoData(canvasId, placeholderId, show) {
     const canvas = document.getElementById(canvasId);
     const placeholder = document.getElementById(placeholderId);
     if (show) {
-        const key = canvasId === 'department-teachtime-chart' ? 'teachtime' : 'salary';
-        departmentChartDestroy(key);
+        const keyMap = {
+            'department-teachtime-chart':'teachtime', 'department-salary-chart':'salary',
+            'department-excess-hours-chart':'excessHours', 'department-salary-distribution-chart':'salaryDistribution',
+            'department-reduction-usage-chart':'reductionUsage', 'department-reduction-scatter-chart':'reductionScatter'
+        };
+        departmentChartDestroy(keyMap[canvasId] || canvasId);
     }
     if (canvas) canvas.style.display = show ? 'none' : '';
     if (placeholder) {
@@ -1279,6 +1285,10 @@ window.departmentSectionYearChanged = function departmentSectionYearChanged(sect
     else if (section === 'course') updateDepartmentCourseCharts();
     else if (section === 'large') updateDepartmentLargeChart();
     else if (section === 'support') updateDepartmentSupportChart();
+    else if (section === 'excess') renderDepartmentExcessHours();
+    else if (section === 'distribution') renderDepartmentSalaryDistribution();
+    else if (section === 'usage') renderDepartmentReductionUsage();
+    else if (section === 'scatter') renderDepartmentReductionScatter();
 };
 
 function departmentNumber(row, field) {
@@ -1644,7 +1654,11 @@ function loadDepartmentAnalysis() {
 
     renderDepartmentOverview();
     renderDepartmentTeachtime();
+    renderDepartmentExcessHours();
+    renderDepartmentSalaryDistribution();
     renderDepartmentSalary();
+    renderDepartmentReductionUsage();
+    renderDepartmentReductionScatter();
     updateDepartmentCourseCharts();
     updateDepartmentLargeChart();
     updateDepartmentSupportChart();
@@ -1740,6 +1754,125 @@ function renderDepartmentTeachtime() {
         {label:'平均授課時數',data:avg},
         {label:'加權授課時數',data:weighted}
     ], ' 小時', true);
+}
+
+
+const DEPARTMENT_REDUCTION_FIELDS = [
+    '行政減授', '進修學士班折抵', '新進教師減授及返還', '計畫類', '指導研究生'
+];
+const DEPARTMENT_DISTRIBUTION_Y_FIELDS = ['學年超支鐘點', '實際授課時數', '加權授課時數'];
+
+function departmentReductionTotal(row) {
+    return DEPARTMENT_REDUCTION_FIELDS.reduce((sum,field)=>sum+departmentNumber(row,field),0);
+}
+
+function departmentDistributionRows() {
+    if (departmentState.teacherType !== 'fulltime') return [];
+    return (analysisState.data.salaryDistribution || []).filter(row =>
+        (row.系所 || '') === departmentState.selectedDepartment
+    );
+}
+
+function departmentSelectedYear(id) {
+    return Number(document.getElementById(id)?.value || 114);
+}
+
+function departmentHistogram(values) {
+    const sorted = values.map(Number).filter(Number.isFinite).sort((a,b)=>a-b);
+    if (!sorted.length) return {labels:[], counts:[]};
+    const min = sorted[0], max = sorted[sorted.length-1];
+    if (min === max) return {labels:[String(departmentFormat(min))], counts:[sorted.length]};
+    const quantile = q => {
+        const pos=(sorted.length-1)*q, lo=Math.floor(pos), hi=Math.ceil(pos);
+        return sorted[lo] + (sorted[hi]-sorted[lo])*(pos-lo);
+    };
+    const iqr = quantile(.75)-quantile(.25);
+    // Freedman–Diaconis：依樣本數與資料離散程度自動決定組距；IQR 為 0 時改用 Sturges。
+    let binWidth = iqr > 0 ? 2*iqr/Math.cbrt(sorted.length) : 0;
+    let bins = binWidth > 0 ? Math.ceil((max-min)/binWidth) : Math.ceil(Math.log2(sorted.length)+1);
+    bins = Math.max(1, Math.min(30, bins));
+    const width=(max-min)/bins;
+    const counts=Array(bins).fill(0);
+    sorted.forEach(v => counts[Math.min(bins-1,Math.floor((v-min)/width))]++);
+    const labels=counts.map((_,i)=>`${departmentFormat(min+i*width)}–${departmentFormat(i===bins-1?max:min+(i+1)*width)}`);
+    return {labels,counts};
+}
+
+function departmentMakeHistogram(canvasId,key,values,label) {
+    const canvas=document.getElementById(canvasId); if(!canvas) return;
+    departmentChartDestroy(key);
+    const {labels,counts}=departmentHistogram(values);
+    departmentState.charts[key]=new Chart(canvas.getContext('2d'),{
+        type:'bar',data:{labels,datasets:[{label,data:counts,backgroundColor:'rgba(31,87,152,.72)',borderColor:'#1f5798',borderWidth:1}]},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.raw} 位教師`}}},
+            scales:{x:{title:{display:true,text:'數值區間'},ticks:{maxRotation:45,minRotation:0}},y:{beginAtZero:true,title:{display:true,text:'教師人數'},ticks:{precision:0}}}}
+    });
+}
+
+function renderDepartmentExcessHours() {
+    if(departmentState.teacherType!=='fulltime'){
+        departmentSetNoData('department-excess-hours-chart','department-excess-hours-no-data',true);return;
+    }
+    departmentSetNoData('department-excess-hours-chart','department-excess-hours-no-data',false);
+    const rows=(analysisState.data.salary||[]).filter(r=>(r.系所||'')===departmentState.selectedDepartment)
+        .sort((a,b)=>Number(a.年度)-Number(b.年度));
+    const average=document.getElementById('department-excess-mode')?.value==='average';
+    const fields=['學年超支鐘點','實際授課時數','加權授課時數'];
+    const years=rows.map(r=>`${r.年度} 學年度`);
+    const colors=['#dc2626','#1f5798','#16a34a'];
+    const datasets=fields.map((field,i)=>({
+        label:field,
+        data:rows.map(r=>{
+            const n=departmentNumber(r,field);
+            return average?(departmentNumber(r,'教師人數')?n/departmentNumber(r,'教師人數'):null):n;
+        }),
+        backgroundColor:colors[i]
+    }));
+    const canvas=document.getElementById('department-excess-hours-chart'); if(!canvas)return;
+    departmentChartDestroy('excessHours');
+    departmentState.charts.excessHours=new Chart(canvas.getContext('2d'),{
+        type:'bar',data:{labels:years,datasets},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},
+            scales:{x:{stacked:false},y:{beginAtZero:true,title:{display:true,text:average?'每位教師平均時數':'時數'}}}}
+    });
+}
+
+function renderDepartmentSalaryDistribution() {
+    if(departmentState.teacherType!=='fulltime'){departmentSetNoData('department-salary-distribution-chart','department-salary-distribution-no-data',true);return;}
+    departmentSetNoData('department-salary-distribution-chart','department-salary-distribution-no-data',false);
+    const year=departmentSelectedYear('department-distribution-year-select');
+    const field=document.getElementById('department-distribution-variable')?.value||'學年超支鐘點';
+    const includeZero=document.getElementById('department-distribution-zero')?.value==='include';
+    const rows=departmentDistributionRows().filter(r=>Number(r.年度)===year && (includeZero || departmentNumber(r,field)!==0));
+    departmentMakeHistogram('department-salary-distribution-chart','salaryDistribution',rows.map(r=>r[field]),field);
+    const note=document.getElementById('department-distribution-count'); if(note)note.textContent=`樣本數：${rows.length} 位教師；分組數由資料範圍自動決定。`;
+}
+
+function renderDepartmentReductionUsage() {
+    if(departmentState.teacherType!=='fulltime'){departmentSetNoData('department-reduction-usage-chart','department-reduction-usage-no-data',true);return;}
+    departmentSetNoData('department-reduction-usage-chart','department-reduction-usage-no-data',false);
+    const year=departmentSelectedYear('department-usage-year-select');
+    const field=document.getElementById('department-usage-variable')?.value||DEPARTMENT_REDUCTION_FIELDS[0];
+    const includeZero=document.getElementById('department-usage-zero')?.value==='include';
+    const rows=departmentDistributionRows().filter(r=>Number(r.年度)===year);
+    const values=rows.filter(r=>includeZero || (field==='減授總和'?departmentReductionTotal(r):departmentNumber(r,field))!==0).map(r=>field==='減授總和'?departmentReductionTotal(r):departmentNumber(r,field));
+    departmentMakeHistogram('department-reduction-usage-chart','reductionUsage',values,field);
+    const note=document.getElementById('department-usage-count'); if(note)note.textContent=`樣本數：${values.length} 位教師；分組數由資料範圍自動決定。`;
+}
+
+function renderDepartmentReductionScatter() {
+    if(departmentState.teacherType!=='fulltime'){departmentSetNoData('department-reduction-scatter-chart','department-reduction-scatter-no-data',true);return;}
+    departmentSetNoData('department-reduction-scatter-chart','department-reduction-scatter-no-data',false);
+    const year=departmentSelectedYear('department-scatter-year-select');
+    const xField=document.getElementById('department-scatter-x')?.value||DEPARTMENT_REDUCTION_FIELDS[0];
+    const yField=document.getElementById('department-scatter-y')?.value||'學年超支鐘點';
+    const includeZero=document.getElementById('department-scatter-zero')?.value==='include';
+    const rows=departmentDistributionRows().filter(r=>Number(r.年度)===year && (includeZero || (xField==='減授總和'?departmentReductionTotal(r):departmentNumber(r,xField))!==0));
+    const points=rows.map(r=>({x:xField==='減授總和'?departmentReductionTotal(r):departmentNumber(r,xField),y:departmentNumber(r,yField)})).filter(p=>Number.isFinite(p.x)&&Number.isFinite(p.y));
+    const canvas=document.getElementById('department-reduction-scatter-chart'); if(!canvas)return;
+    departmentChartDestroy('reductionScatter');
+    departmentState.charts.reductionScatter=new Chart(canvas.getContext('2d'),{type:'scatter',data:{datasets:[{label:`${xField} × ${yField}`,data:points,backgroundColor:'rgba(31,87,152,.65)',pointRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{type:'linear',title:{display:true,text:xField}},y:{type:'linear',title:{display:true,text:yField}}}}});
+    const note=document.getElementById('department-scatter-count');if(note)note.textContent=`樣本數：${points.length} 位教師。`;
 }
 
 function setDepartmentSalaryMode(mode) {
