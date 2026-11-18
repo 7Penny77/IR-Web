@@ -1328,7 +1328,7 @@ const DEPARTMENT_SALARY_HATCH_FIELDS = new Set([
 
 const DEPARTMENT_SALARY_COLORS = [
     '#156178', '#5AB5BF', '#FF8957', '#A53914', '#C7CDD3',
-    '#FED257', '#5AB5BF', '#156178', '#7c3aed', '#475569'
+    '#5AB5BF', '#FED257', '#FF8957', '#A53914', '#475569'
 ];
 
 function departmentCreateHatchPattern(color) {
@@ -1505,8 +1505,8 @@ function departmentMakeLineChart(canvasId, key, labels, datasets, suffix=' 小�
         type:'line',
         data:{labels:labels.map(analysisDisplayText), datasets:datasets.map((d, index) => ({
             ...d,
-            borderColor: d.borderColor || ['#7296A4', '#A53914', '#156178'][index % 3],
-            backgroundColor: d.backgroundColor || ['#7296A4', '#A53914', '#156178'][index % 3],
+            borderColor: d.borderColor || ['#5AB5BF', '#FF8957', '#156178'][index % 3],
+            backgroundColor: d.backgroundColor || ['#5AB5BF', '#FF8957', '#156178'][index % 3],
             label:analysisDisplayText(d.label), borderWidth:2, tension:.25, fill:false, pointRadius:4
         }))},
         options:{
@@ -1936,7 +1936,7 @@ function renderDepartmentExcessHours() {
     const average=document.getElementById('department-excess-mode')?.value==='average';
     const fields=['學年超支鐘點','實際授課時數','加權授課時數'];
     const years=rows.map(r=>`${r.年度} 學年度`);
-    const colors=['#A53914','#7296A4','#156178'];
+    const colors=['#FF8957','#5AB5BF','#156178'];
     const datasets=fields.map((field,i)=>({
         label:field,
         data:rows.map(r=>{
