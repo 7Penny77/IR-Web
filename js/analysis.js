@@ -1210,30 +1210,83 @@ function initDepartmentChartExpandButtons() {
     });
 }
 
+let departmentModalChart = null;
+
+function departmentCloneChartValue(value) {
+    if (Array.isArray(value)) return value.map(departmentCloneChartValue);
+    if (!value || typeof value !== 'object') return value;
+
+    // CanvasPattern、CanvasGradient 等非一般物件沿用原參照；
+    // 一般設定物件則遞迴複製，保留 tooltip callbacks 等函式。
+    const proto = Object.getPrototypeOf(value);
+    if (proto !== Object.prototype && proto !== null) return value;
+
+    const copy = {};
+    Object.keys(value).forEach(key => {
+        copy[key] = departmentCloneChartValue(value[key]);
+    });
+    return copy;
+}
+
 function openDepartmentChartModal(canvasId, title) {
-    const canvas = document.getElementById(canvasId);
-    const chart = canvas && window.Chart ? Chart.getChart(canvas) : null;
-    if (!chart) return;
-    chart.resize();
-    chart.update('none');
-    const imageUrl = chart.toBase64Image('image/png', 1);
+    const sourceCanvas = document.getElementById(canvasId);
+    const sourceChart = sourceCanvas && window.Chart ? Chart.getChart(sourceCanvas) : null;
     const modal = document.getElementById('department-chart-modal');
-    const image = document.getElementById('department-chart-modal-image');
+    let modalCanvas = document.getElementById('department-chart-modal-image');
     const heading = document.getElementById('department-chart-modal-title');
     const download = document.getElementById('department-chart-download');
-    if (!modal || !image || !download) return;
+    if (!sourceChart || !modal || !modalCanvas || !download) return;
+
+    // 將原本顯示靜態 PNG 的 img 改為 canvas，保留 Chart.js 的互動 tooltip。
+    if (modalCanvas.tagName.toLowerCase() !== 'canvas') {
+        const replacement = document.createElement('canvas');
+        replacement.id = 'department-chart-modal-image';
+        replacement.className = modalCanvas.className;
+        replacement.style.width = '100%';
+        replacement.style.height = 'auto';
+        replacement.style.aspectRatio = '4 / 3';
+        replacement.setAttribute('role', 'img');
+        replacement.setAttribute('aria-label', title || '放大圖表');
+        modalCanvas.replaceWith(replacement);
+        modalCanvas = replacement;
+    }
+
+    if (departmentModalChart) {
+        departmentModalChart.destroy();
+        departmentModalChart = null;
+    }
+
     if (heading) heading.textContent = title || '圖表放大檢視';
-    image.src = imageUrl;
-    download.href = imageUrl;
-    download.download = `${(title || 'ntpu-chart').replace(/[^\w\u4e00-\u9fff-]+/g, '_')}.png`;
+    const modalData = departmentCloneChartValue(sourceChart.data);
+    const modalOptions = departmentCloneChartValue(sourceChart.options);
+    modalOptions.responsive = true;
+    modalOptions.maintainAspectRatio = true;
+    modalOptions.aspectRatio = 4 / 3;
+    modalOptions.animation = false;
+
+    departmentModalChart = new Chart(modalCanvas.getContext('2d'), {
+        type: sourceChart.config.type,
+        data: modalData,
+        options: modalOptions,
+        plugins: sourceChart.config.plugins || []
+    });
+
     modal.classList.remove('hidden');
     modal.classList.add('flex');
     document.body.classList.add('overflow-hidden');
+
+    departmentModalChart.update('none');
+    download.href = departmentModalChart.toBase64Image('image/png', 1);
+    download.download = `${(title || 'ntpu-chart').replace(/[^\w\u4e00-\u9fff-]+/g, '_')}.png`;
 }
 
 function closeDepartmentChartModal() {
     const modal = document.getElementById('department-chart-modal');
     if (!modal) return;
+    if (departmentModalChart) {
+        departmentModalChart.destroy();
+        departmentModalChart = null;
+    }
     modal.classList.add('hidden');
     modal.classList.remove('flex');
     document.body.classList.remove('overflow-hidden');
@@ -1272,8 +1325,8 @@ const DEPARTMENT_SALARY_FIELDS = [
     '實習',
     '大班',
     '外語',
-    '進修學士班折抵',
     '行政減授',
+    '進修學士班折抵',
     '新進教師減授及返還',
     '計畫類',
     '指導研究生'
@@ -1288,8 +1341,8 @@ const DEPARTMENT_SALARY_HATCH_FIELDS = new Set([
 ]);
 
 const DEPARTMENT_SALARY_COLORS = [
-    '#156178', '#5AB5BF', '#FF8957', '#A53914', '#C7CDD3',
-    '#FED257', '#5AB5BF', '#156178', '#7c3aed', '#475569'
+    '#156178', '#5AB5BF', '#FF8957', '#A53914', '#FED257',
+    '#C7CDD3', '#5AB5BF', '#156178', '#7c3aed', '#475569'
 ];
 
 function departmentCreateHatchPattern(color) {
@@ -1882,8 +1935,24 @@ function departmentMakeHistogram(canvasId,key,values,label,binWidth = 1) {
     const {labels,counts}=departmentHistogram(values, binWidth);
     departmentState.charts[key]=new Chart(canvas.getContext('2d'),{
         type:'bar',data:{labels,datasets:[{label,data:counts,backgroundColor:'rgba(31,87,152,.72)',borderColor:'#156178',borderWidth:1}]},
-        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.raw} 位教師`}}},
-            scales:{x:{title:{display:true,text:'數值區間'},ticks:{maxRotation:45,minRotation:0}},y:{beginAtZero:true,title:{display:true,text:'教師人數'},ticks:{precision:0}}}}
+        options:{
+            responsive:true,
+            maintainAspectRatio:false,
+            plugins:{
+                legend:{display:false},
+                tooltip:{
+                    callbacks:{
+                        title:items => items.length ? items[0].label : '',
+                        label:ctx=>` ${ctx.raw} 位教師`
+                    }
+                }
+            },
+            datasets:{bar:{categoryPercentage:1,barPercentage:1,borderSkipped:false}},
+            scales:{
+                x:{title:{display:true,text:'數值區間'},ticks:{maxRotation:45,minRotation:0}},
+                y:{beginAtZero:true,title:{display:true,text:'教師人數'},ticks:{precision:0}}
+            }
+        }
     });
 }
 

@@ -185,6 +185,7 @@ function evaluationDepartmentChanged(shouldReset = true) {
         evaluationState.lastDepartment = department;
         evaluationLoadRequiredDefaults(department);
     }
+    evaluationRenderOriginalReductions();
     evaluationRecalculate();
 }
 
@@ -379,11 +380,72 @@ function evaluationSelectedReduction() {
     return document.querySelector('input[name="evaluation-reduction"]:checked')?.value || 'none';
 }
 
+const EVALUATION_ORIGINAL_REDUCTION_FIELDS = [
+    { key: '行政減授', label: '行政減授' },
+    { key: '進修學士班折抵', label: '進修學士班折抵' },
+    { key: '新進教師減授及返還', label: '新進教師減授及返還' },
+    { key: '計畫類', label: '計畫類' },
+    { key: '指導研究生', label: '指導研究生' }
+];
+
+function evaluationSalaryRows() {
+    return typeof analysisState !== 'undefined' && Array.isArray(analysisState.data?.salary) ? analysisState.data.salary : [];
+}
+
+function evaluationFindSalaryRow() {
+    const department = document.getElementById('evaluation-department')?.value || '';
+    const year = String(document.getElementById('evaluation-academic-year')?.value || '114');
+    return evaluationSalaryRows().find(row =>
+        String(row.系所 || '').trim() === department &&
+        String(row.年度 ?? row.學年度 ?? '').trim() === year
+    ) || null;
+}
+
+function evaluationRenderOriginalReductions() {
+    const host = document.getElementById('evaluation-original-reductions');
+    if (!host) return;
+    const salaryRow = evaluationFindSalaryRow();
+    host.innerHTML = EVALUATION_ORIGINAL_REDUCTION_FIELDS.map(({ key, label }) => {
+        const value = salaryRow ? evaluationNumber(salaryRow[key]) : 0;
+        return `<div class="flex flex-col sm:flex-row sm:items-center gap-2 rounded-lg border border-gray-200 p-3">
+            <label class="flex items-center gap-2 text-sm font-semibold sm:min-w-48">
+                <input type="checkbox" name="evaluation-original-reduction" value="${evaluationEscape(key)}" checked onchange="evaluationRecalculate()" class="rounded text-ntpuBlue focus:ring-ntpuBlue">
+                ${evaluationEscape(label)}
+            </label>
+            <div class="flex items-center gap-2 sm:ml-auto">
+                <input type="number" min="0" step="0.1" data-original-reduction="${evaluationEscape(key)}" value="${value}" oninput="evaluationRecalculate()" class="w-32 rounded-lg border-gray-300 text-sm text-right">
+                <span class="text-xs text-gray-500">小時</span>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function evaluationCalculateOriginalReductions() {
+    let total = 0;
+    document.querySelectorAll('input[name="evaluation-original-reduction"]:checked').forEach(checkbox => {
+        const input = document.querySelector(`[data-original-reduction="${CSS.escape(checkbox.value)}"]`);
+        total += evaluationNumber(input?.value);
+    });
+    const totalEl = document.getElementById('evaluation-original-reduction-total');
+    if (totalEl) totalEl.textContent = evaluationFormatNumber(total);
+    return total;
+}
+
 function evaluationTeachingHours() {
     const reduction = evaluationSelectedReduction();
     const base = { professor: 8, associate: 9, assistant: 9, lecturer: 10 };
     if (reduction === 'one') return { professor: 7, associate: 8, assistant: 8, lecturer: 9 };
+    if (reduction === 'onehalf') return { professor: 6.5, associate: 7.5, assistant: 7.5, lecturer: 8.5 };
     if (reduction === 'three') return { professor: 6, associate: 6, assistant: 6, lecturer: 7 };
+    if (reduction === 'custom') {
+        const amount = Math.max(0, evaluationReadNumber('evaluation-custom-reduction-hours'));
+        return {
+            professor: Math.max(0, base.professor - amount),
+            associate: Math.max(0, base.associate - amount),
+            assistant: Math.max(0, base.assistant - amount),
+            lecturer: Math.max(0, base.lecturer - amount)
+        };
+    }
     return base;
 }
 
@@ -396,7 +458,7 @@ function evaluationCalculateSupply() {
     const adjunct = evaluationReadNumber('evaluation-adjunct-count');
     const adjunctHours = evaluationReadNumber('evaluation-adjunct-hours');
     return {
-        total: professor * hours.professor + associate * hours.associate + assistant * hours.assistant + lecturer * hours.lecturer + adjunct * adjunctHours,
+        total: professor * hours.professor + associate * hours.associate + assistant * hours.assistant + lecturer * hours.lecturer + adjunct * adjunctHours - evaluationCalculateOriginalReductions(),
         hours,
         counts: { professor, associate, assistant, lecturer, adjunct, adjunctHours }
     };
@@ -482,7 +544,8 @@ function evaluationRenderScenarioRows(supply) {
         ['副教授', supply.counts.associate, h.associate, supply.counts.associate * h.associate],
         ['助理教授', supply.counts.assistant, h.assistant, supply.counts.assistant * h.assistant],
         ['講師', supply.counts.lecturer, h.lecturer, supply.counts.lecturer * h.lecturer],
-        ['兼任教師', supply.counts.adjunct, supply.counts.adjunctHours, supply.counts.adjunct * supply.counts.adjunctHours]
+        ['兼任教師', supply.counts.adjunct, supply.counts.adjunctHours, supply.counts.adjunct * supply.counts.adjunctHours],
+        ['原有減授措施（扣除）', '—', '—', -evaluationCalculateOriginalReductions()]
     ];
     body.innerHTML = rows.map(r => `<tr class="border-t border-gray-100"><td class="px-4 py-2 font-semibold">${r[0]}</td><td class="px-4 py-2 text-right">${evaluationFormatNumber(r[1])}</td><td class="px-4 py-2 text-right">${evaluationFormatNumber(r[2])}</td><td class="px-4 py-2 text-right font-semibold">${evaluationFormatNumber(r[3])}</td></tr>`).join('');
 }
@@ -552,6 +615,9 @@ function evaluationCollectPayload() {
         department: document.getElementById('evaluation-department')?.value || '',
         name: document.getElementById('evaluation-name')?.value.trim() || '',
         reduction: evaluationSelectedReduction(),
+        customReductionHours: evaluationReadNumber('evaluation-custom-reduction-hours'),
+        originalReductionMeasures: EVALUATION_ORIGINAL_REDUCTION_FIELDS.filter(({ key }) => document.querySelector(`input[name="evaluation-original-reduction"][value="${CSS.escape(key)}"]`)?.checked).map(({ key }) => ({ name: key, hours: evaluationNumber(document.querySelector(`[data-original-reduction="${CSS.escape(key)}"]`)?.value) })),
+        originalReductionTotal: evaluationCalculateOriginalReductions(),
         teacherCounts: supply.counts,
         teachingHoursAfterReduction: supply.hours,
         requiredTotalCredits: required,
@@ -625,6 +691,9 @@ function evaluationReset() {
     document.getElementById('evaluation-adjunct-count').value = '';
     document.getElementById('evaluation-adjunct-hours').value = '';
     document.querySelector('input[name="evaluation-reduction"][value="none"]').checked = true;
+    const customReduction = document.getElementById('evaluation-custom-reduction-hours');
+    if (customReduction) customReduction.value = '';
+    evaluationRenderOriginalReductions();
     evaluationState.lastDepartment = '';
     evaluationLoadRequiredDefaults(document.getElementById('evaluation-department')?.value || '');
     evaluationInitializeDemandSections();
@@ -635,7 +704,9 @@ function evaluationInit() {
     if (evaluationState.initialized) return;
     evaluationState.initialized = true;
     evaluationInitializeDemandSections();
+    document.getElementById('evaluation-academic-year')?.addEventListener('change', () => { evaluationRenderOriginalReductions(); evaluationRecalculate(); });
     evaluationInitSelectors();
+    evaluationRenderOriginalReductions();
     evaluationLoadRequiredDefaults('');
     evaluationRecalculate();
 }
